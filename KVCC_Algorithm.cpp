@@ -1,0 +1,317 @@
+#include"KVCC_Algorithm.h"
+#include"vector"
+#include"algorithm"
+#include"time.h"
+
+VCCE::VCCE() {
+}
+
+VCCE::VCCE(PUNGraph G_, int k_){
+	G = G_;
+	k = k_;
+}
+
+TUNGraV VCCE::KVCC_ENUM(PUNGraph G, int k) {
+	//func: Find k-VCCs in Graph G
+	//params:
+	//	G: Undirected Graph
+	//	k: an integer
+	//return:
+	//	all k-vertex connected components (Type: TUNGraV )
+
+
+	//printf("G: \n node_nums = %d, edge_nums = %d\n", TSnap::CntNonZNodes(G), TSnap::CntUniqUndirEdges(G));
+	//for (TUNGraph::TNodeI NI = G->BegNI(); NI < G->EndNI(); NI++) {
+	//	printf("%d\n", NI.GetId());
+	//}
+	//step1: initialize set VCC as empty
+	TUNGraV VCC;  // return as K-Vccs;
+
+	//step2: remove vertices u and incident edges, that d(u) < k
+	PUNGraph G2 = TSnap::GetKCore(G, k);
+	printf("G2: \n node_nums = %d, edge_nums = %d\n", TSnap::CntNonZNodes(G2), TSnap::CntUniqUndirEdges(G2));
+
+	//step3: identify connected compotent set in G
+	TCnComV ConV;
+	TSnap::GetSccs(G2, ConV);
+	//printf("1\n");
+
+	TVec<PUNGraph> G_set; // Connected Component in G2;
+	for (TCnComV::TIter I = ConV.BegI(); I < ConV.EndI(); I++) {
+		//printf("%d\n", I->NIdV);
+		G_set.Add(TSnap::GetSubGraph(G2, I->NIdV));
+	}
+	//printf("%d\n", G_set.Len());
+	//printf("2\n");
+	//step4: find vertex cut in G
+	TIntV S; //Vertex_Cut
+	//printf("G_set_len = %d\n", G_set.Len());
+	for (TUNGraV::TIter GI = G_set.BegI(); GI < G_set.EndI(); GI++) {
+		S = Global_Cut(*GI, k);
+		//printf("%d\n", S.Empty());
+		if (S.Empty()) {
+
+			VCC.Add(*GI);
+			//printf("GI: \n node_nums = %d, edge_nums = %d\n", TSnap::CntNonZNodes(*GI), TSnap::CntUniqUndirEdges(*GI));
+		}
+		else {
+			TUNGraV G_i = Overlap_Partition(*GI, S);
+			//printf("%d\n", G_i.Len());
+			for (TUNGraV::TIter G_ij = G_i.BegI(); G_ij < G_i.EndI(); G_ij++) {
+
+				TUNGraV VCC_i = KVCC_ENUM(*G_ij, k);
+				//printf("%d\n", VCC_i.Len());
+				for (TUNGraV::TIter GI_j = VCC_i.BegI(); GI_j < VCC_i.EndI(); GI_j++) {
+
+					VCC.Add(*GI_j);
+					//for (TUNGraV::TIter GI = VCC.BegI(); GI < VCC.EndI(); GI++) {
+					//	printf("GI: \n node_nums = %d, edge_nums = %d\n", TSnap::CntNonZNodes(*GI), TSnap::CntUniqUndirEdges(*GI));
+					//}
+				}
+
+			}
+		}
+
+	}
+	//printf("3\n");
+	return VCC;
+}
+
+
+TIntV VCCE::Global_Cut(PUNGraph G, int k) {
+	TIntV S;
+	//1. compute sparse certification SC
+	PUNGraph SC = Compute_SC(G, k);
+	//2. select a source vertex u with the minimum degree
+	int u = GetMnDegNId(SC);
+	//3. SC_bar = Construct_DG(SC);
+	PNEANet SC_bar = Construct_DG(SC);
+
+	int e;//take place
+	
+	for (TUNGraph::TNodeI NI = SC->BegNI(); NI < SC->EndNI(); NI++) {
+		S = Loc_Cut(u, NI.GetId(), SC_bar, SC, k);
+		if (S.Empty() == FALSE) {
+			//printf("1\n");
+			return S;
+		}
+	}
+
+	PUNGraph Neigh = TSnap::GetEgonet(SC, u, e); //N(u)
+	for (TUNGraph::TNodeI NI1 = Neigh->BegNI(); NI1 < Neigh->EndNI(); NI1++) {
+		for (TUNGraph::TNodeI NI2 = NI1; NI2 < Neigh->EndNI(); NI2++) {
+			S = Loc_Cut(NI1.GetId(), NI2.GetId(), SC_bar, SC, k);
+			if (S.Empty() == FALSE) {
+				//printf("2\n");
+				return S;
+			}
+		}
+	}
+	//printf("3\n");
+	return {};
+}
+
+PUNGraph VCCE::Compute_SC(PUNGraph G, int k) {
+	
+	PUNGraph SC = TUNGraph::New();
+	PUNGraph G_ = TUNGraph::New();
+	*G_ = *G;
+	PNGraph BFSTree;
+	int NodeNums = TSnap::CntNonZNodes(G_);
+	std::vector<int> visited; //mark visited node
+	std::vector<int> del;  //fix wrong BFS Tree
+	for (int i = 0; i < k; i++) {
+		visited.clear();
+		//printf("F%d:\n", i);
+		int j = 0;
+		while (visited.size() < NodeNums) {
+			for (TUNGraph::TNodeI NI = G_->BegNI(); NI < G_->EndNI(); NI++) {
+
+				if (std::find(visited.begin(), visited.end(), NI.GetId()) == visited.end()) {
+					//printf("T%d:\n", j++);
+					BFSTree = TSnap::MyGetBfsTree(G_, NI.GetId(), TRUE, FALSE);  //My BFS Function modified in bfsdfs.h
+					del.clear();
+					//printf("%d\n", TSnap::CntUniqDirEdges(BFSTree));
+
+					for (TNGraph::TNodeI TNI = BFSTree->BegNI(); TNI < BFSTree->EndNI(); TNI++) {
+						visited.push_back(TNI.GetId());
+						if (i == 0) {
+							if (!SC->IsNode(TNI.GetId()))
+								SC->AddNode(TNI.GetId());
+						}
+
+					}
+
+					for (TNGraph::TEdgeI TEI = BFSTree->BegEI(); TEI < BFSTree->EndEI(); TEI++) {
+						// if not use MyGetBfsTree() before, use the follow code
+						//if (std::find(del.begin(), del.end(), TEI.GetDstNId()) == del.end()) {
+						//	//printf("%d -> %d\n", TEI.GetSrcNId(), TEI.GetDstNId());
+						//	SC->AddEdge(TEI.GetSrcNId(), TEI.GetDstNId());
+						//	del.push_back(TEI.GetDstNId());
+						//	G->DelEdge(TEI.GetSrcNId(), TEI.GetDstNId());
+						//}
+						//printf("%d -> %d\n", TEI.GetSrcNId(), TEI.GetDstNId());
+						SC->AddEdge(TEI.GetSrcNId(), TEI.GetDstNId());
+						G_->DelEdge(TEI.GetSrcNId(), TEI.GetDstNId());
+					}
+				}
+
+			}
+
+		}
+	}
+
+	
+
+	return SC;
+
+}
+
+TUNGraV VCCE::Overlap_Partition(PUNGraph G, TIntV Vertex_Cut) {
+	//params:
+	//	G: Undirected Graph
+	//	S: Vertex_Cut
+	//return:
+	//	Overlap_Partition Graphs (Type: TUNGraV )
+	PUNGraph G_ = TUNGraph::New();
+	*G_ = *G;
+	TUNGraV G_set;
+	//printf("Vertex_Cut: %d\n", Vertex_Cut.Len());
+	//printf("G: \n node_nums = %d, edge_nums = %d\n", TSnap::CntNonZNodes(G), TSnap::CntUniqUndirEdges(G));
+	TSnap::DelNodes(G_, Vertex_Cut); // 相应的边会自动删除吗 To test
+	//printf("G_: \n node_nums = %d, edge_nums = %d\n", TSnap::CntNonZNodes(G_), TSnap::CntUniqUndirEdges(G_));
+	TCnComV ConV;
+	TSnap::GetSccs(G_, ConV);
+	//printf("ConV: %d\n", ConV.Len());
+	for (TCnComV::TIter I = ConV.BegI(); I < ConV.EndI(); I++) {
+		//printf("%d\n", I->NIdV);
+		for (TIntV::TIter NI = Vertex_Cut.BegI(); NI < Vertex_Cut.EndI(); NI++) {
+			I->Add(NI->Val);
+			//printf("%d\n", NI->Val);
+		}
+		G_set.Add(TSnap::GetSubGraph(G, I->NIdV));
+	}
+
+
+
+	return G_set;
+}
+
+PNEANet VCCE::Construct_DG(PUNGraph G) {
+	//Construct corresponding attribute directed graph,
+	//prepare for maximum flow calculate.(According to 'Effective K-Vertex connected 
+	//component detection in large-scale networks')
+	PNEANet DG = TNEANet::New();
+	DG->AddIntAttrE("capacity", 0);
+	int offset = G->GetMxNId();
+	int i, eid;
+	//step 1
+
+	for (TUNGraph::TNodeI NI = G->BegNI(); NI < G->EndNI(); NI++) {
+		i = NI.GetId();
+		DG->AddNode(i); //v
+		DG->AddNode(i + offset); //v'
+		eid = DG->AddEdge(i, i + offset);
+		DG->AddIntAttrDatE(eid, 1, "capacity");
+		//DG->AddEdge(i + NodeNums, i);
+		//eid = DG->GetEId(i + NodeNums, i);
+		//DG->AddIntAttrDatE(eid, INT_MAX, "capacity");
+
+	}
+
+	//step 2
+	for (TUNGraph::TEdgeI EI = G->BegEI(); EI < G->EndEI(); EI++) {
+		// u -> v
+		eid = DG->AddEdge(EI.GetSrcNId() + offset, EI.GetDstNId());  //u''->v'
+		DG->AddIntAttrDatE(eid, 1, "capacity");
+		eid = DG->AddEdge(EI.GetDstNId() + offset, EI.GetSrcNId()); //v''->u'
+		DG->AddIntAttrDatE(eid, 1, "capacity");
+	}
+
+	return  DG;
+}
+
+
+TIntV VCCE::Loc_Cut(int source, int sink, PNEANet DG, PUNGraph G, int k) {
+	//printf("DG: \n node_nums = %d, edge_nums = %d\n", TSnap::CntNonZNodes(DG), TSnap::CntUniqUndirEdges(DG));
+	int offset = G->GetMxNId();
+	source += offset;
+	TIntV vertex_cut;
+	TIntV ResNet;
+	PNEANet DG2 = TNEANet::New();
+	*DG2 = *DG;
+	int e;//take place
+	PUNGraph Neigh = TSnap::GetEgonet(G, source - offset, e); //N(u)
+	if (source == sink || Neigh->IsNode(sink))
+		return vertex_cut;
+	int lambda = TSnap::MyGetMaxFlowIntEK(DG, source, sink, ResNet);
+	if (lambda >= k)
+		return vertex_cut;
+
+	else {
+		for (int i = 0; i < ResNet.Len(); i++) {
+			//printf("%d: %d\n", i, ResNet[i]);
+			if (ResNet[i] == 1) {
+				//printf("%d: %d->%d\n", i, DG->GetEI(i).GetSrcNId(), DG->GetEI(i).GetDstNId());
+				DG2->AddEdge(DG2->GetEI(i).GetDstNId(), DG2->GetEI(i).GetSrcNId());
+				DG2->DelEdge(DG2->GetEI(i).GetSrcNId(), DG2->GetEI(i).GetDstNId());		
+			}
+		}
+	}
+	PNGraph BFSTree;
+	BFSTree = TSnap::MyGetBfsTree(DG2, source, TRUE, FALSE);
+	for (TNEANet::TEdgeI EI = DG->BegEI(); EI < DG->EndEI(); EI++) {
+		if (BFSTree->IsNode(EI.GetSrcNId()) && !BFSTree->IsNode(EI.GetDstNId())) {
+			//printf("%d\n", G->IsNode(EI.GetSrcNId()));
+				if (G->IsNode(EI.GetSrcNId())) 
+					vertex_cut.Add(EI.GetSrcNId());
+				else
+					vertex_cut.Add(EI.GetDstNId());
+
+				
+			//printf("%d->%d\n", EI.GetSrcNId(), EI.GetDstNId());
+		}
+	}
+	//printf("\n");
+	return vertex_cut;
+	//compute the minimum edge cut in DG
+	//return the corrrsponding vertex cut in G
+}
+
+template <class PGraph>
+int GetMnDegNId(const PGraph& Graph) {
+	TIntV MnDegV;
+	int MnDeg = INT_MAX;
+	for (typename PGraph::TObj::TNodeI NI = Graph->BegNI(); NI < Graph->EndNI(); NI++) {
+		if (MnDeg > NI.GetDeg()) { MnDegV.Clr(); MnDeg = NI.GetDeg(); }
+		if (MnDeg == NI.GetDeg()) { MnDegV.Add(NI.GetId()); }
+	}
+	EAssertR(!MnDegV.Empty(), "Input graph is empty!");
+	return MnDegV[TInt::Rnd.GetUniDevInt(MnDegV.Len())];
+}
+
+//int GetMaxFlowIntFF(PNEANet& Net, const int& SrcNId, const int& SnkNId, PNEANet& ResNet) {
+//	//:params
+//	//ResNet: return as residual net
+//	const TStr CapAttrName = "capacity";
+//	ResNet = Net;
+//	int CapIndex = Net->GetIntAttrIndE(CapAttrName);
+//	int MaxFlow = 0;
+//	TIntV BfsPath;
+//	TIntV Cap;
+//	//BFSTree = TSnap::MyGetBfsTreeBFSTree = TSnap::MyGetBfsTree(Net, NI.GetId(), TRUE, FALSE);
+//	while (TRUE) {
+//		TSnap::GetBfsPath(Net, SrcNId, SnkNId, BfsPath);
+//		if (BfsPath.Empty()) break; // not exist bfs path
+//		int PathFlow = TInt::Mx;
+//		for (TIntV::TIter NI = BfsPath.BegI(); NI < BfsPath.EndI(); NI++) {
+//			//Net->GetNI(*NI).GetIntAttrVal(Cap);
+//			//PathFlow = GetMn(PathFlow, Net->GetNI(*NI));
+//			//TInt::GetMn(PathFlow, Net->GetNI(*NI).GetAttrVal("capacity"))
+//		}
+//	}
+//	
+//
+//
+//
+//}
