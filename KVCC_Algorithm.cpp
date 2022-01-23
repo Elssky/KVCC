@@ -79,6 +79,7 @@ TUNGraV VCCE::KVCC_ENUM(PUNGraph G, int k) {
 
 
 TIntV VCCE::Global_Cut(PUNGraph G, int k) {
+	//printf("%d\n", 1);
 	TIntV S;
 	//1. compute sparse certification SC
 	PUNGraph SC = Compute_SC(G, k);

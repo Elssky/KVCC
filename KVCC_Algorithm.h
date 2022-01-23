@@ -32,11 +32,3 @@ int GetMnDegNId(const PGraph& Graph);
 //int GetMaxFlowIntFF(PNEANet& Net, const int& SrcNId, const int& SnkNId, PNEANet& ResNet);
 
 
-//TUNGraV KVCC_ENUM(PUNGraph G, int k);
-//TIntV Global_Cut(PUNGraph G, int k);
-//TUNGraV Overlap_Partition(PUNGraph G, TIntV Vertex_Cut);
-//PNEANet Construct_DG(PUNGraph G);
-//PUNGraph Compute_SC(PUNGraph G, int k);
-//TIntV Loc_Cut(int source, int sink, PNEANet DG, PUNGraph G, int k);
-
-
