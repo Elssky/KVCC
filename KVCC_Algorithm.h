@@ -12,6 +12,10 @@ class MyTUNGraph : TUNGraph {
 
 class VCCE {
 public:
+	double _time = 0;
+	double _time2 = 0;
+	int m = 0;
+	int m2 = 0;
 	PUNGraph G;
 	int k;
 	VCCE();

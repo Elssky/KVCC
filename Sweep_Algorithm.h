@@ -3,7 +3,6 @@
 
 class VCCE_S : public VCCE {
 public:
-	double _time = 0;
 	//TIntV SSV = {}; //strong side vertex
 	VCCE_S(PUNGraph G_, int k_);
 	TUNGraV KVCC_ENUM(PUNGraph G, int k);

@@ -29,7 +29,7 @@ TUNGraV VCCE::KVCC_ENUM(PUNGraph G, int k) {
 
 	//step2: remove vertices u and incident edges, that d(u) < k
 	PUNGraph G2 = TSnap::GetKCore(G, k);
-	printf("G2: \n node_nums = %d, edge_nums = %d\n", TSnap::CntNonZNodes(G2), TSnap::CntUniqUndirEdges(G2));
+	//printf("G2: \n node_nums = %d, edge_nums = %d\n", TSnap::CntNonZNodes(G2), TSnap::CntUniqUndirEdges(G2));
 
 	//step3: identify connected compotent set in G
 	TCnComV ConV;
@@ -47,7 +47,8 @@ TUNGraV VCCE::KVCC_ENUM(PUNGraph G, int k) {
 	TIntV S; //Vertex_Cut
 	//printf("G_set_len = %d\n", G_set.Len());
 	for (TUNGraV::TIter GI = G_set.BegI(); GI < G_set.EndI(); GI++) {
-		S = Global_Cut(*GI, k);
+		
+		S = Global_Cut(*GI, k);		
 		//printf("%d\n", S.Empty());
 		if (S.Empty()) {
 
@@ -79,6 +80,7 @@ TUNGraV VCCE::KVCC_ENUM(PUNGraph G, int k) {
 
 
 TIntV VCCE::Global_Cut(PUNGraph G, int k) {
+	clock_t t1 = clock();
 	//printf("%d\n", 1);
 	TIntV S;
 	//1. compute sparse certification SC
@@ -89,7 +91,11 @@ TIntV VCCE::Global_Cut(PUNGraph G, int k) {
 	PNEANet SC_bar = Construct_DG(SC);
 
 	int e;//take place
-	
+
+	_time += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
+	//printf("%fs\n", (clock() - t1) * 1.0 / CLOCKS_PER_SEC);
+	m++;
+
 	for (TUNGraph::TNodeI NI = SC->BegNI(); NI < SC->EndNI(); NI++) {
 		S = Loc_Cut(u, NI.GetId(), SC_bar, SC, k);
 		if (S.Empty() == FALSE) {
@@ -234,6 +240,7 @@ PNEANet VCCE::Construct_DG(PUNGraph G) {
 
 
 TIntV VCCE::Loc_Cut(int source, int sink, PNEANet DG, PUNGraph G, int k) {
+	clock_t t1 = clock();
 	//printf("DG: \n node_nums = %d, edge_nums = %d\n", TSnap::CntNonZNodes(DG), TSnap::CntUniqUndirEdges(DG));
 	int offset = G->GetMxNId();
 	source += offset;
@@ -243,11 +250,20 @@ TIntV VCCE::Loc_Cut(int source, int sink, PNEANet DG, PUNGraph G, int k) {
 	*DG2 = *DG;
 	int e;//take place
 	PUNGraph Neigh = TSnap::GetEgonet(G, source - offset, e); //N(u)
-	if (source == sink || Neigh->IsNode(sink))
+	if (source == sink || Neigh->IsNode(sink)) {
+		_time2 += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
+		//printf("%fs\n", (clock() - t1) * 1.0 / CLOCKS_PER_SEC);
+		m2++;
 		return vertex_cut;
+	}
+		
 	int lambda = TSnap::MyGetMaxFlowIntEK(DG, source, sink, ResNet);
-	if (lambda >= k)
+	if (lambda >= k) {
+		_time2 += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
+		//printf("%fs\n", (clock() - t1) * 1.0 / CLOCKS_PER_SEC);
+		m2++;
 		return vertex_cut;
+	}
 
 	else {
 		for (int i = 0; i < ResNet.Len(); i++) {
@@ -274,6 +290,9 @@ TIntV VCCE::Loc_Cut(int source, int sink, PNEANet DG, PUNGraph G, int k) {
 		}
 	}
 	//printf("\n");
+	_time2 += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
+	//printf("%fs\n", (clock() - t1) * 1.0 / CLOCKS_PER_SEC);
+	m2++;
 	return vertex_cut;
 	//compute the minimum edge cut in DG
 	//return the corrrsponding vertex cut in G
