@@ -12,6 +12,6 @@ protected:
 	void Detect_SSV(PUNGraph& G, int k);  //Strong Side Vertex
 	TIntV Global_Cut(PUNGraph G, int k);
 	bool IsSSV(PUNGraph G, int NId);
-	void Check_SSV(PUNGraph& G, TIntV S);
+	void Check_SSV(PUNGraph& G, PUNGraph& subG, TIntV S);
 	TUNGraV Overlap_Partition(PUNGraph G, TIntV Vertex_Cut);
 };

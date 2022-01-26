@@ -47,8 +47,11 @@ TUNGraV VCCE::KVCC_ENUM(PUNGraph G, int k) {
 	TIntV S; //Vertex_Cut
 	//printf("G_set_len = %d\n", G_set.Len());
 	for (TUNGraV::TIter GI = G_set.BegI(); GI < G_set.EndI(); GI++) {
-		
-		S = Global_Cut(*GI, k);		
+		clock_t t1 = clock();
+		S = Global_Cut(*GI, k);	
+		_time += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
+		//printf("%fs\n", (clock() - t1) * 1.0 / CLOCKS_PER_SEC);
+		m++;
 		//printf("%d\n", S.Empty());
 		if (S.Empty()) {
 
@@ -80,7 +83,7 @@ TUNGraV VCCE::KVCC_ENUM(PUNGraph G, int k) {
 
 
 TIntV VCCE::Global_Cut(PUNGraph G, int k) {
-	clock_t t1 = clock();
+	
 	//printf("%d\n", 1);
 	TIntV S;
 	//1. compute sparse certification SC
@@ -92,9 +95,7 @@ TIntV VCCE::Global_Cut(PUNGraph G, int k) {
 
 	int e;//take place
 
-	_time += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
-	//printf("%fs\n", (clock() - t1) * 1.0 / CLOCKS_PER_SEC);
-	m++;
+	
 
 	for (TUNGraph::TNodeI NI = SC->BegNI(); NI < SC->EndNI(); NI++) {
 		S = Loc_Cut(u, NI.GetId(), SC_bar, SC, k);
