@@ -2,14 +2,14 @@
 #include <stdio.h>
 using namespace std;
 int main() {
-	PUNGraph G = TSnap::LoadEdgeList<PUNGraph>("./dataset/DBLP.txt", 0, 1);
+	PUNGraph G = TSnap::LoadEdgeList<PUNGraph>("./dataset/Cit.txt", 0, 1);
 	printf("G: \n node_nums = %d, edge_nums = %d\n", TSnap::CntNonZNodes(G), TSnap::CntUniqUndirEdges(G));
-	for (int k = 20; k <= 20; k += 5){
+	for (int k = 20; k <= 40; k += 5){
 		printf("\nk = %d:\n\n", k);
 		//int k = 20;
 		//PUNGraph G = TSnap::LoadEdgeList<PUNGraph>("./dataset/paper_fig.txt", 0, 1);
 		
-		/*printf("VCCE:\n");
+		printf("VCCE:\n");
 		VCCE VCCE(G, k);
 		clock_t t2 = clock();
 		TUNGraV VCC2 = VCCE.KVCC_ENUM(VCCE.G, VCCE.k);
@@ -20,7 +20,7 @@ int main() {
 		printf("time for LOC_CUT: %fs\n", VCCE._time2);
 		printf("Call for LOC_CUT: %d\n", VCCE.m2);
 
-		printf("\n");*/
+		printf("\n");
 
 		printf("VCCE_Sweep:\n");
 		VCCE_S VCCE_S(G, k);

@@ -93,7 +93,7 @@ TUNGraV VCCE_S::KVCC_ENUM(PUNGraph G, int k) {
 
 TIntV VCCE_S::Global_Cut(PUNGraph G, int k)
 {
-	
+	clock_t t1 = clock();
 	TIntV S;
 	MyTCnComV CS;	
 	int u, v;
@@ -101,7 +101,6 @@ TIntV VCCE_S::Global_Cut(PUNGraph G, int k)
 	//1. compute sparse certification SC
 
 	PUNGraph SC = Compute_SC(G, k, CS);
-	int N = SC->GetNodes();
 	TIntH deposit, dist, pru;
 	//printf("THash_len:%d\n", deposit.Len());
 	SC->SSV = G->SSV;
@@ -111,9 +110,10 @@ TIntV VCCE_S::Global_Cut(PUNGraph G, int k)
 	
 	//3. detect strong side vertices
 
-	
-	Detect_SSV(SC, k);
 
+	Detect_SSV(SC, k);
+	m++;
+	_time += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
 	
 	//printf("SSV_len: %d\n", SC->SSV.Len());
 	//printf("G->SSV: %d\n", G->SSV.Len());
@@ -121,6 +121,7 @@ TIntV VCCE_S::Global_Cut(PUNGraph G, int k)
 	//printf("%fs\n", (clock() - t1) * 1.0 / CLOCKS_PER_SEC);
 	
 	
+
 	if (SC->SSV.Empty()) {
 		u = GetMnDegNId(SC);
 	}
@@ -128,7 +129,7 @@ TIntV VCCE_S::Global_Cut(PUNGraph G, int k)
 		u = SC->SSV.GetRndVal();
 	}
 	//4.Init
-	clock_t t1 = clock();
+	
 	for (MyTCnComV::TIter I = CS.BegI(); I < CS.EndI(); I++) {
 		//printf("%d\n", I->NIdV);
 		I->g_deposit = 0;
@@ -137,30 +138,12 @@ TIntV VCCE_S::Global_Cut(PUNGraph G, int k)
 	for (TUNGraph::TNodeI NI = SC->BegNI(); NI < SC->EndNI(); NI++) {
 		deposit.AddDat(NI.GetId(), 0);
 		pru.AddDat(NI.GetId(), 0);
-
 	}
-
-	printf("THash_len:%d\n", deposit.Len());
-	 
-	
-	
-	//
-	/*int M = SC->GetMxNId();
-	for (int i = 0; i <= M; i++) {
-		deposit.AddKey(i);
-		pru.AddKey(i);
-		deposit[i] = 0;
-		pru[i] = 0;
-	}*/
-	m++;
-	_time += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
-
 
 	
 	TSnap::GetShortPath(G, u, dist, FALSE);
 	dist.SortByDat(FALSE);
 
-	printf("THash_len:%d\n", dist.Len());
 	//for (TIntH::TIter HI = pru.BegI(); HI < pru.EndI(); HI++) {
 	//	v = HI.GetKey();
 	//	pru[v] = 1;
@@ -173,7 +156,7 @@ TIntV VCCE_S::Global_Cut(PUNGraph G, int k)
 	for (TIntH::TIter HI = dist.BegI(); HI < dist.EndI(); HI++) {
 		
 		v = HI.GetKey();
-		if (pru[v] == TRUE) {
+		if (HI.GetDat() == TRUE) {
 			continue;
 		}
 		S = Loc_Cut(u, v, SC_bar, SC, k);
@@ -314,12 +297,12 @@ void VCCE_S::Detect_SSV(PUNGraph& G, int k)
 	//Todo: P57 Lemma11、12推导出的加快检测SSV的方法
 	//printf("%d\n", G->IsSub);
 	if (G->IsSub) {
-		for (TIntV::TIter NI = G->SSV.BegI(); NI < G->SSV.EndI(); NI++) {
-			if (!IsSSV(G, *NI)) {
-				G->SSV.Del(*NI);
-				//printf("%d\n", NI.GetId());
-			}
-		}
+		//for (TIntV::TIter NI = G->SSV.BegI(); NI < G->SSV.EndI(); NI++) {
+		//	if (!IsSSV(G, *NI)) {
+		//		G->SSV.Del(*NI);
+		//		//printf("%d\n", NI.GetId());
+		//	}
+		//}
 	}
 	else {
 		for (TUNGraph::TNodeI NI = G->BegNI(); NI < G->EndNI(); NI++) {
@@ -337,17 +320,15 @@ void VCCE_S::Detect_SSV(PUNGraph& G, int k)
 void VCCE_S::Sweep(PUNGraph G, int u, int v, TIntH& pru, TIntH& deposit, MyTCnComV& CS) {
 	//printf("%d\n", pru.IsKey(v));
 	
-	pru[v] = TRUE;
-	//pru.get
+	pru.GetDat(v) = TRUE;
+	//pru[v] = TRUE;
 	int e;
 	PUNGraph Neigh = TSnap::GetEgonet(G, v, e);
 	for (TUNGraph::TNodeI NI = Neigh->BegNI(); NI < Neigh->EndNI(); NI++) {
 		int w = NI.GetId();
-		//printf("%d: %d\n", w, pru.IsKey(w));
-		if (pru[w] == FALSE) {
-			deposit[w]++;
-			//printf("deposit[w]: %d\n", deposit[w]);
-			if (G->SSV.IsIn(v) || deposit[w] >= k)
+		if (pru.GetDat(w) == FALSE) {
+			deposit.GetDat(w)++;
+			if (G->SSV.IsIn(v) || deposit.GetDat(w) >= k)
 				Sweep(G, u, w, pru, deposit, CS);
 		}	
 	}
@@ -359,7 +340,7 @@ void VCCE_S::Sweep(PUNGraph G, int u, int v, TIntH& pru, TIntH& deposit, MyTCnCo
 				PUNGraph CC = TSnap::GetSubGraph(G, I->NIdV);
 				for (TUNGraph::TNodeI NI = CC->BegNI(); NI < CC->EndNI(); NI++) {
 					int w = NI.GetId();
-					if (pru[w] == FALSE)
+					if (pru.GetDat(w) == FALSE)
 						Sweep(G, u, w, pru, deposit, CS);
 				}
 			}
