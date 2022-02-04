@@ -223,9 +223,6 @@ PNEANet VCCE::Construct_DG(PUNGraph G) {
 		DG->AddNode(i + offset); //v'
 		eid = DG->AddEdge(i, i + offset);
 		DG->AddIntAttrDatE(eid, 1, "capacity");
-		//DG->AddEdge(i + NodeNums, i);
-		//eid = DG->GetEId(i + NodeNums, i);
-		//DG->AddIntAttrDatE(eid, INT_MAX, "capacity");
 
 	}
 

@@ -19,22 +19,19 @@ TUNGraV VCCE_S::KVCC_ENUM(PUNGraph G, int k) {
 	//return:
 	//	all k-vertex connected components (Type: TUNGraV )
 
-
-	//printf("G: \n node_nums = %d, edge_nums = %d\n", G->GetNodes(), G->GetEdges());
-	//for (TUNGraph::TNodeI NI = G->BegNI(); NI < G->EndNI(); NI++) {
-	//	printf("%d\n", NI.GetId());
-	//}
 	//step1: initialize set VCC as empty
 	TUNGraV VCC;  // return as K-Vccs;
 
 	//step2: remove vertices u and incident edges, that d(u) < k
 	PUNGraph G2 = TSnap::GetKCore(G, k);
-	//G2->SSV = G->SSV;
-	//G2->IsSub = G->IsSub;
+
+	G2->IsSub = G->IsSub;
+
+	for (TIntV::TIter NI = G->SSV.BegI(); NI < G->SSV.EndI(); NI++) {	//G2->SSV = G->SSV(node in G2)
+		if (G2->IsNode(*NI)) G2->SSV.Add(*NI);
+	}
 	//if(!G2->IsSub) Detect_SSV(G2);
-	// 
-	//printf("SSV_len: %d\n", G->SSV.Len());
-	//printf("G2: \n node_nums = %d, edge_nums = %d\n", G2->GetNodes(), G2->GetEdges());
+	 
 
 	//step3: identify connected compotent set in G
 	TCnComV ConV;
@@ -47,16 +44,16 @@ TUNGraV VCCE_S::KVCC_ENUM(PUNGraph G, int k) {
 		PUNGraph GI = TSnap::GetSubGraph(G2, I->NIdV);
 		GI->IsSub = G2->IsSub;
 		
-		for (TIntV::TIter NI = G2->SSV.BegI(); NI < G2->SSV.EndI(); NI++) {
+		for (TIntV::TIter NI = G2->SSV.BegI(); NI < G2->SSV.EndI(); NI++) { //or GI->SSV = G2->SSV;
 			if (GI->IsNode(*NI)) GI->SSV.Add(*NI);
 		}
 		G_set.Add(GI);
 	}
-	//printf(" G_set.Len(): %d\n", G_set.Len());
-	//printf("2\n");
+
+	
 	//step4: find vertex cut in G
 	TIntV S; //Vertex_Cut
-	//printf("G_set_len = %d\n", G_set.Len());
+
 	for (TUNGraV::TIter GI = G_set.BegI(); GI < G_set.EndI(); GI++) {
 		//clock_t t1 = clock();
 		S = Global_Cut(*GI, k);
@@ -67,7 +64,6 @@ TUNGraV VCCE_S::KVCC_ENUM(PUNGraph G, int k) {
 		if (S.Empty()) {
 
 			VCC.Add(*GI);
-			//printf("GI: \n node_nums = %d, edge_nums = %d\n", TSnap::CntNonZNodes(*GI), TSnap::CntUniqUndirEdges(*GI));
 		}
 		else {
 			TUNGraV G_i = Overlap_Partition(*GI, S);
@@ -75,20 +71,14 @@ TUNGraV VCCE_S::KVCC_ENUM(PUNGraph G, int k) {
 			for (TUNGraV::TIter G_ij = G_i.BegI(); G_ij < G_i.EndI(); G_ij++) {
 				//printf("SSV_len: %d\n", (*G_ij)->SSV.Len());
 				TUNGraV VCC_i = KVCC_ENUM(*G_ij, k);
+				VCC.AddV(VCC_i);
 				//printf("%d\n", VCC_i.Len());
-				for (TUNGraV::TIter GI_j = VCC_i.BegI(); GI_j < VCC_i.EndI(); GI_j++) {
-
-					VCC.Add(*GI_j);
-					//for (TUNGraV::TIter GI = VCC.BegI(); GI < VCC.EndI(); GI++) {
-					//	printf("GI: \n node_nums = %d, edge_nums = %d\n", TSnap::CntNonZNodes(*GI), TSnap::CntUniqUndirEdges(*GI));
-					//}
-				}
 
 			}
 		}
 
 	}
-	//printf("3\n");
+
 	return VCC;
 }
 
@@ -124,7 +114,7 @@ TIntV VCCE_S::Global_Cut(PUNGraph G, int k)
 	
 
 	if (SC->SSV.Empty()) {
-		u = GetMnDegNId(SC);
+		u = GetMnDegNId(SC);		
 	}
 	else {
 		u = SC->SSV.GetRndVal();
@@ -163,7 +153,7 @@ TIntV VCCE_S::Global_Cut(PUNGraph G, int k)
 			return S;
 		}
 		Sweep(SC, v, pru, deposit, CS);
-
+		
 	}
 	
 	//6.Phase2
@@ -175,20 +165,19 @@ TIntV VCCE_S::Global_Cut(PUNGraph G, int k)
 				if (NI1 == NI2) continue;
 				bool flag = FALSE;
 				for (MyTCnComV::TIter I = CS.BegI(); I < CS.EndI(); I++) {
-					if (I->IsNIdIn(NI1.GetId()) && I->IsNIdIn(NI2.GetId())) {
-						flag = TRUE;
+					if (I->IsNIdIn(NI1.GetId()) || I->IsNIdIn(NI2.GetId())) {
+						if (I->IsNIdIn(NI1.GetId()) && I->IsNIdIn(NI2.GetId())) {
+							flag = TRUE;
+						}
 						break;
 					}
-
 				}
-				if (flag == TRUE) {
-					
+				if (flag == TRUE) {					
 					continue;
 				}
 				S = Loc_Cut(NI1.GetId(), NI2.GetId(), SC_bar, SC, k);
 				
 				if (!S.Empty()) {
-
 					return S;
 				}
 			}
@@ -215,10 +204,10 @@ TUNGraV VCCE_S::Overlap_Partition(PUNGraph G, TIntV Vertex_Cut) {
 	TSnap::GetSccs(G_, ConV);
 	//printf("ConV: %d\n", ConV.Len());
 	for (TCnComV::TIter I = ConV.BegI(); I < ConV.EndI(); I++) {
-		//printf("%d\n", I->NIdV);
+		
 		for (TIntV::TIter NI = Vertex_Cut.BegI(); NI < Vertex_Cut.EndI(); NI++) {
 			I->Add(NI->Val);
-			//printf("%d\n", NI->Val);
+			
 		}
 		//继承strong side vertex
 		PUNGraph GI = TSnap::GetSubGraph(G, I->NIdV);
@@ -231,13 +220,14 @@ TUNGraV VCCE_S::Overlap_Partition(PUNGraph G, TIntV Vertex_Cut) {
 	return G_set;
 }
 
-PUNGraph VCCE_S::Compute_SC(PUNGraph G, int k, MyTCnComV &ConV)
+PUNGraph VCCE_S::Compute_SC(PUNGraph G, int k, MyTCnComV &CS)
 {
 	
 	PUNGraph SC = TUNGraph::New();
 	PUNGraph G_ = TUNGraph::New();
 	*G_ = *G;
 	PNGraph BFSTree;
+	PUNGraph F_k = TUNGraph::New();//Forest k
 	int NodeNums = TSnap::CntNonZNodes(G_);
 	std::vector<int> visited; //mark visited node
 	std::vector<int> del;  //fix wrong BFS Tree
@@ -245,17 +235,15 @@ PUNGraph VCCE_S::Compute_SC(PUNGraph G, int k, MyTCnComV &ConV)
 		visited.clear();
 		//printf("F%d:\n", i);
 		int j = 0;
-		if (i == k - 1) {
-			TSnap::GetSccs(G_, ConV); //add new function at 'cncom.h' Line 406
-		}
+		
 		while (visited.size() < NodeNums) {
 			for (TUNGraph::TNodeI NI = G_->BegNI(); NI < G_->EndNI(); NI++) {
 
 				if (std::find(visited.begin(), visited.end(), NI.GetId()) == visited.end()) {
-					//printf("T%d:\n", j++);
+					
 					BFSTree = TSnap::MyGetBfsTree(G_, NI.GetId(), TRUE, FALSE);  //My BFS Function modified in bfsdfs.h
 					del.clear();
-					//printf("%d\n", TSnap::CntUniqDirEdges(BFSTree));
+					
 
 					for (TNGraph::TNodeI TNI = BFSTree->BegNI(); TNI < BFSTree->EndNI(); TNI++) {
 						visited.push_back(TNI.GetId());
@@ -263,29 +251,35 @@ PUNGraph VCCE_S::Compute_SC(PUNGraph G, int k, MyTCnComV &ConV)
 							if (!SC->IsNode(TNI.GetId()))
 								SC->AddNode(TNI.GetId());
 						}
+						if (i == k - 1) {
+							F_k->AddNode(TNI.GetId());
+						}
 					}
 
 					for (TNGraph::TEdgeI TEI = BFSTree->BegEI(); TEI < BFSTree->EndEI(); TEI++) {
-						// if not use MyGetBfsTree() before, use the follow code
-						//if (std::find(del.begin(), del.end(), TEI.GetDstNId()) == del.end()) {
-						//	//printf("%d -> %d\n", TEI.GetSrcNId(), TEI.GetDstNId());
-						//	SC->AddEdge(TEI.GetSrcNId(), TEI.GetDstNId());
-						//	del.push_back(TEI.GetDstNId());
-						//	G->DelEdge(TEI.GetSrcNId(), TEI.GetDstNId());
-						//}
-						//printf("%d -> %d\n", TEI.GetSrcNId(), TEI.GetDstNId());
 						SC->AddEdge(TEI.GetSrcNId(), TEI.GetDstNId());
 						G_->DelEdge(TEI.GetSrcNId(), TEI.GetDstNId());
+						if (i == k - 1) {
+							F_k->AddEdge(TEI.GetSrcNId(), TEI.GetDstNId());
+						}
 					}
 				}
 			}
 		}
 	}
+	TSnap::GetSccs(F_k, CS);
+	for (MyTCnComV::TIter I = CS.BegI(); I < CS.EndI(); I++) {	
+		if (I->Len() < 2) {
+			CS.DelAll(*I);
+		}
+	}
+
 	SC->SSV = G->SSV;
 	SC->IsSub = G->IsSub;
 	return SC;
 
 }
+
 
 void VCCE_S::Detect_SSV(PUNGraph& G)
 {	
@@ -293,11 +287,11 @@ void VCCE_S::Detect_SSV(PUNGraph& G)
 	//判断是否为子图，若是，可利用P57 Lemma11、12推导出的加快检测SSV的方法；
 	//Todo: P57 Lemma11、12推导出的加快检测SSV的方法
 	//printf("%d\n", G->IsSub);
+	//printf("Len:%d\n", G->SSV.Len());
 	if (G->IsSub) {
 		for (TIntV::TIter NI = G->SSV.BegI(); NI < G->SSV.EndI(); NI++) {
 			if (!IsSSV(G, *NI)) {
 				G->SSV.Del(*NI);
-				//printf("%d\n", NI.GetId());
 			}
 		}
 	}
@@ -305,7 +299,6 @@ void VCCE_S::Detect_SSV(PUNGraph& G)
 		for (TUNGraph::TNodeI NI = G->BegNI(); NI < G->EndNI(); NI++) {
 			if (IsSSV(G, NI.GetId())) {
 				G->SSV.Add(NI.GetId());
-				//printf("%d\n", NI.GetId());
 			}
 		}
 	}
@@ -330,18 +323,20 @@ void VCCE_S::Sweep(PUNGraph G, int v, TIntH& pru, TIntH& deposit, MyTCnComV& CS)
 		}	
 	}
 	for (MyTCnComV::TIter I = CS.BegI(); I < CS.EndI(); I++) {
-		if (I->IsNIdIn(v) && I->processed == FALSE) {
-			I->g_deposit++;
-			if (G->SSV.IsIn(v) || I->g_deposit >= k) {
-				I->processed = TRUE;
-				PUNGraph CC = TSnap::GetSubGraph(G, I->NIdV);
-				for (TUNGraph::TNodeI NI = CC->BegNI(); NI < CC->EndNI(); NI++) {
-					int w = NI.GetId();
-					if (pru.GetDat(w) == FALSE)
-						Sweep(G, w, pru, deposit, CS);
+		if (I->IsNIdIn(v)) {
+			if (I->processed == FALSE) {
+				I->g_deposit++;
+				if (G->SSV.IsIn(v) || I->g_deposit >= k) {
+					I->processed = TRUE;
+					PUNGraph CC = TSnap::GetSubGraph(G, I->NIdV);
+					for (TUNGraph::TNodeI NI = CC->BegNI(); NI < CC->EndNI(); NI++) {
+						int w = NI.GetId();
+						if (pru.GetDat(w) == FALSE)
+							Sweep(G, w, pru, deposit, CS);
+					}
 				}
 			}
-			break;
+			break;	
 		}
 	}
 
@@ -354,11 +349,11 @@ bool VCCE_S::IsSSV(PUNGraph G, int NId) {
 	PUNGraph Neigh = TSnap::GetEgonet(G, NId, e); //N(u)
 	for (TUNGraph::TNodeI NI1 = Neigh->BegNI(); NI1 < Neigh->EndNI(); NI1++) {
 
-		/*set1.clear();
+		set1.clear();
 		
 		for (int i = 0; i < NI1.GetInDeg(); i++) {
 			set1.insert(NI1.GetInNId(i));
-		}*/
+		}
 
 		for (TUNGraph::TNodeI NI2 = NI1; NI2 < Neigh->EndNI(); NI2++) {
 
@@ -368,13 +363,13 @@ bool VCCE_S::IsSSV(PUNGraph G, int NId) {
 			if (NI1 == NI2) continue;
 			if (!G->IsEdge(NI1.GetId(), NI2.GetId())) return FALSE;
 
-			/*for (int i = 0; i < NI2.GetInDeg(); i++) {
+			for (int i = 0; i < NI2.GetInDeg(); i++) {
 				set2.insert(NI2.GetInNId(i));
 			}
 
 			std::set_intersection(set1.begin(), set1.end(), set2.begin(), set2.end(), std::insert_iterator<std::set<int>>(set3, set3.begin()));
 
-			if (set3.size() < k) return FALSE;*/
+			if (set3.size() < k) return FALSE;
 
 		}
 	}
