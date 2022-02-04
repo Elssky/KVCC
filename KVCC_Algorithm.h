@@ -16,6 +16,8 @@ public:
 	double _time2 = 0;
 	int m = 0;
 	int m2 = 0;
+	int pru_node = 0;
+	int non_pru_node = 0;
 	PUNGraph G;
 	int k;
 	VCCE();

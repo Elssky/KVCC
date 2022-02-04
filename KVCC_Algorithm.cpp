@@ -247,7 +247,7 @@ TIntV VCCE::Loc_Cut(int source, int sink, PNEANet DG, PUNGraph G, int k) {
 	//printf("DG: \n node_nums = %d, edge_nums = %d\n", TSnap::CntNonZNodes(DG), TSnap::CntUniqUndirEdges(DG));
 	int offset = G->GetMxNId();
 	source += offset;
-	TIntV vertex_cut;
+	TIntV vertex_cut = {};
 	TIntV ResNet;
 	PNEANet DG2 = TNEANet::New();
 	*DG2 = *DG;
@@ -257,7 +257,7 @@ TIntV VCCE::Loc_Cut(int source, int sink, PNEANet DG, PUNGraph G, int k) {
 		_time2 += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
 		//printf("%fs\n", (clock() - t1) * 1.0 / CLOCKS_PER_SEC);
 		m2++;
-		return vertex_cut;
+		return {};
 	}
 		
 	int lambda = TSnap::MyGetMaxFlowIntEK(DG, source, sink, ResNet);
@@ -265,7 +265,7 @@ TIntV VCCE::Loc_Cut(int source, int sink, PNEANet DG, PUNGraph G, int k) {
 		_time2 += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
 		//printf("%fs\n", (clock() - t1) * 1.0 / CLOCKS_PER_SEC);
 		m2++;
-		return vertex_cut;
+		return {};
 	}
 
 	else {
@@ -287,8 +287,7 @@ TIntV VCCE::Loc_Cut(int source, int sink, PNEANet DG, PUNGraph G, int k) {
 					vertex_cut.Add(EI.GetSrcNId());
 				else
 					vertex_cut.Add(EI.GetDstNId());
-
-				
+			
 			//printf("%d->%d\n", EI.GetSrcNId(), EI.GetDstNId());
 		}
 	}
@@ -313,28 +312,4 @@ int GetMnDegNId(const PGraph& Graph) {
 	return MnDegV[TInt::Rnd.GetUniDevInt(MnDegV.Len())];
 }
 
-//int GetMaxFlowIntFF(PNEANet& Net, const int& SrcNId, const int& SnkNId, PNEANet& ResNet) {
-//	//:params
-//	//ResNet: return as residual net
-//	const TStr CapAttrName = "capacity";
-//	ResNet = Net;
-//	int CapIndex = Net->GetIntAttrIndE(CapAttrName);
-//	int MaxFlow = 0;
-//	TIntV BfsPath;
-//	TIntV Cap;
-//	//BFSTree = TSnap::MyGetBfsTreeBFSTree = TSnap::MyGetBfsTree(Net, NI.GetId(), TRUE, FALSE);
-//	while (TRUE) {
-//		TSnap::GetBfsPath(Net, SrcNId, SnkNId, BfsPath);
-//		if (BfsPath.Empty()) break; // not exist bfs path
-//		int PathFlow = TInt::Mx;
-//		for (TIntV::TIter NI = BfsPath.BegI(); NI < BfsPath.EndI(); NI++) {
-//			//Net->GetNI(*NI).GetIntAttrVal(Cap);
-//			//PathFlow = GetMn(PathFlow, Net->GetNI(*NI));
-//			//TInt::GetMn(PathFlow, Net->GetNI(*NI).GetAttrVal("capacity"))
-//		}
-//	}
-//	
-//
-//
-//
-//}
+

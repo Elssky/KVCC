@@ -4,15 +4,16 @@ using namespace std;
 int main() {
 	//<Dataset>            <max K-VCC>
 	//CA-AstroPh.txt			56
+	//web-Stanford.txt        >70 not sure
 	PUNGraph G = TSnap::LoadEdgeList<PUNGraph>("./dataset/CA-AstroPh.txt", 0, 1);
 	
-	printf("G: \n node_nums = %d, edge_nums = %d\n", TSnap::CntNonZNodes(G), TSnap::CntUniqUndirEdges(G));
-	for (int k = 40; k <= 40; k += 5){
+	printf("G: \n node_nums = %d, edge_nums = %d\n", G->GetNodes(), G->GetEdges());
+	for (int k = 23; k <= 23; k += 5){
 		printf("\nk = %d:\n\n", k);
 		//int k = 20;
 		//PUNGraph G = TSnap::LoadEdgeList<PUNGraph>("./dataset/paper_fig.txt", 0, 1);
 		
-		/*printf("VCCE:\n");
+		printf("VCCE:\n");
 		VCCE VCCE(G, k);
 		clock_t t2 = clock();
 		TUNGraV VCC2 = VCCE.KVCC_ENUM(VCCE.G, VCCE.k);
@@ -23,7 +24,7 @@ int main() {
 		printf("time for LOC_CUT: %fs\n", VCCE._time2);
 		printf("Call for LOC_CUT: %d\n", VCCE.m2);
 
-		printf("\n");*/
+		printf("\n");
 
 		printf("VCCE_Sweep:\n");
 		VCCE_S VCCE_S(G, k);
@@ -35,6 +36,9 @@ int main() {
 		printf("Call for GLO_CUT: %d\n", VCCE_S.m);
 		printf("time for LOC_CUT: %fs\n", VCCE_S._time2);
 		printf("Call for LOC_CUT: %d\n", VCCE_S.m2);
+		printf("pru_node_nums: %d\n", VCCE_S.pru_node);
+		printf("non_pru_node_nums: %d\n", VCCE_S.non_pru_node);
+		printf("non_pru/all = %f\n", 1.0 * VCCE_S.non_pru_node / (1.0 * (VCCE_S.non_pru_node + VCCE_S.pru_node)));
 	}
 	 
 	/*for (TUNGraV::TIter GI = VCC.BegI(); GI < VCC.EndI(); GI++) {
