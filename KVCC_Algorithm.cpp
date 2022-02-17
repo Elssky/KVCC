@@ -9,6 +9,13 @@ VCCE::VCCE() {
 VCCE::VCCE(PUNGraph G_, int k_){
 	G = G_;
 	k = k_;
+	//int Mxnode = G->GetMxNId();
+	//vertex_map_ = new int[Mxnode];
+	//memset(vertex_map_, 0, sizeof(int) * Mxnode);
+	//int i = 0;
+	//for (TUNGraph::TNodeI NI = G->BegNI(); NI < G->EndNI(); NI++) {
+	//	vertex_map_[NI.GetId()] = i++;
+	//}
 }
 
 TUNGraV VCCE::KVCC_ENUM(PUNGraph G, int k) {

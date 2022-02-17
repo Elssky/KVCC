@@ -12,6 +12,7 @@ class MyTUNGraph : TUNGraph {
 
 class VCCE {
 public:
+	int* vertex_map_;
 	double _time = 0;
 	double _time2 = 0;
 	int m = 0;
