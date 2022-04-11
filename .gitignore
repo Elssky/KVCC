@@ -1,0 +1,5 @@
+!/.gitignore
+dataset
+Release
+.vs/
+x64

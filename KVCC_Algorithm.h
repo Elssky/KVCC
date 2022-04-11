@@ -15,10 +15,12 @@ public:
 	int* vertex_map_;
 	double _time = 0;
 	double _time2 = 0;
+	double _time3 = 0;
+	double _time4 = 0;
 	int m = 0;
 	int m2 = 0;
-	int pru_node = 0;
-	int non_pru_node = 0;
+	int m3 = 0;
+	int m4 = 0;
 	PUNGraph G;
 	int k;
 	VCCE();

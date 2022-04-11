@@ -258,16 +258,15 @@ TIntV VCCE::Loc_Cut(int source, int sink, PNEANet DG, PUNGraph G, int k) {
 	int e;//take place
 	PUNGraph Neigh = TSnap::GetEgonet(G, source - offset, e); //N(u)
 	if (source == sink || Neigh->IsNode(sink)) {
-		_time2 += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
-		//printf("%fs\n", (clock() - t1) * 1.0 / CLOCKS_PER_SEC);
-		m2++;
+		_time4 += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
+		////printf("%fs\n", (clock() - t1) * 1.0 / CLOCKS_PER_SEC);
+		m4++;
 		return {};
 	}
 		
-	int lambda = TSnap::MyGetMaxFlowIntEK(DG, source, sink, ResNet);
+	int lambda = TSnap::MyGetMaxFlowIntEK(DG, source, sink, ResNet, k);
 	if (lambda >= k) {
 		_time2 += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
-		//printf("%fs\n", (clock() - t1) * 1.0 / CLOCKS_PER_SEC);
 		m2++;
 		return {};
 	}
@@ -296,9 +295,9 @@ TIntV VCCE::Loc_Cut(int source, int sink, PNEANet DG, PUNGraph G, int k) {
 		}
 	}
 	//printf("\n");
-	_time2 += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
+	_time3 += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
 	//printf("%fs\n", (clock() - t1) * 1.0 / CLOCKS_PER_SEC);
-	m2++;
+	m3++;
 	return vertex_cut;
 	//compute the minimum edge cut in DG
 	//return the corrrsponding vertex cut in G
