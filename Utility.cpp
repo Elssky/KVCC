@@ -54,6 +54,8 @@ void format_graph(string src)
 	int num = 0;
 
 	while (getline(fp, line)) {//fgets(line, 100, fp)
+		if (line[2] == 'F')
+			break;
 		if (line[2] == 'N') {
 			string::size_type pos1 = line.find("Nodes: ");
 			string file_dir1 = line.substr(pos1 + 7);
@@ -65,8 +67,7 @@ void format_graph(string src)
 			
 		}
 		fp2 << line << endl;
-		if (line[0] != '#')
-			break;
+		
 	}
 	int *vertex_map_ = new int[10000000];
 	::memset(vertex_map_, -1, sizeof(int) * 10000000);
@@ -90,6 +91,55 @@ void format_graph(string src)
 		fp2 << u << "\t" << v << endl;
 
 	}
+
+	int* new2old = new int[num];
+	int cur = 0;
+	int i = 0;
+	while (cur < num) {
+		if (vertex_map_[i] == -1) {
+			++i;
+			continue;
+		}
+		new2old[vertex_map_[i]] = i;
+		++cur;
+		++i;
+	}
+	string mts = "./dataset/match.st";
+	errno_t err;
+	FILE* mch, *mch2;
+	err = fopen_s(&mch, mts.c_str(), "wb");
+	//FILE* mch = fopen_s(mts.c_str(), "wb");
+	fwrite(new2old, sizeof(int), num, mch);
+	fclose(mch);
+
+	delete[] new2old;
+	delete[] vertex_map_;
+
+
+
+	/*read part*/
+
+	//int* new2old = new int[num];
+	//err = fopen_s(&mch2, mts.c_str(), "rb");
+	//fread(new2, sizeof(int), num, mch);
+	//fclose(mch);
+
+	//ifstream fp3;
+	//fp3.open(out.c_str());
+	//while (getline(fp3, line)) {//fgets(line, 100, fp)
+
+	//	if (line[0] < '0' || line[0] > '9')
+	//		continue;
+
+	//	sscanf_s(line.c_str(), "%d\t%d", &u, &v);
+
+	//	if (u == v) continue;
+	//	u = new2old[u];
+	//	v = new2old[v];
+	//	cout << u << "\t" << v << endl;
+	//}
+
+
 }
 
 
