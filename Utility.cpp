@@ -5,16 +5,6 @@
 #include<sstream>  
 using namespace std;
 //Preprocessing function
-//FILE* open_file(const char* file_name, const char* mode) {
-//	FILE* f = fopen(file_name, mode);
-//
-//	if (f == NULL) {
-//		printf("Can not open file: %s\n", file_name);
-//		exit(1);
-//	}
-//
-//	return f;
-//}
 
 int get_vertex_id(int u, int& num, int* vertex_map_) {
 	if (vertex_map_[u] < 0) {
@@ -26,7 +16,7 @@ int get_vertex_id(int u, int& num, int* vertex_map_) {
 void format_graph(string src)
 {
 	printf("Create binary graph from .txt file: %s\n", src.c_str());
-	//int mem_edges = 100000000;
+
 	// input example "./dataset/stanford.txt"
 	string::size_type pos = src.rfind("/");
 
@@ -53,7 +43,8 @@ void format_graph(string src)
 	int u, v;
 	int num = 0;
 
-	while (getline(fp, line)) {//fgets(line, 100, fp)
+	while (getline(fp, line)) {
+		fp2 << line << endl;
 		if (line[2] == 'F')
 			break;
 		if (line[2] == 'N') {
@@ -66,14 +57,14 @@ void format_graph(string src)
 			
 			
 		}
-		fp2 << line << endl;
+		
 		
 	}
 	int *vertex_map_ = new int[10000000];
 	::memset(vertex_map_, -1, sizeof(int) * 10000000);
 	
 	
-	while (getline(fp, line)) {//fgets(line, 100, fp)
+	while (getline(fp, line)) {
 
 		if (line[0] < '0' || line[0] > '9')
 			continue;
@@ -106,11 +97,13 @@ void format_graph(string src)
 	}
 	string mts = "./dataset/match.st";
 	errno_t err;
-	FILE* mch, *mch2;
+	FILE *mch;
 	err = fopen_s(&mch, mts.c_str(), "wb");
 	//FILE* mch = fopen_s(mts.c_str(), "wb");
-	fwrite(new2old, sizeof(int), num, mch);
-	fclose(mch);
+	if (mch) {
+		fwrite(new2old, sizeof(int), num, mch);
+		fclose(mch);
+	}
 
 	delete[] new2old;
 	delete[] vertex_map_;
@@ -118,7 +111,7 @@ void format_graph(string src)
 
 
 	/*read part*/
-
+	//FILE *mch2;
 	//int* new2old = new int[num];
 	//err = fopen_s(&mch2, mts.c_str(), "rb");
 	//fread(new2, sizeof(int), num, mch);
@@ -146,39 +139,26 @@ void format_graph(string src)
 
 //Others
 
-//TVec<TIntV> res;
-//TIntV track;
-//void backtrack(TIntV nums, int start, int k);
-//
-//TVec<TIntV> subsets(TIntV nums, int k) {
-//	backtrack(nums, 0, k);
-//	return res;
-//}
-//
-//void backtrack(TIntV nums, int start, int k) {
-//	if (track.Len() == k) {
-//		res.Add(track);
-//		return;
-//	}
-//	
-//	for (int i = start; i < nums.Len(); i++) {
-//		track.Add(nums[i]);
-//		backtrack(nums, i + 1, k);
-//		track.DelLast();
-//	}
-//}
+TVec<TIntV> res;
+TIntV track;
+void backtrack(TIntV nums, int start, int k);
+
+TVec<TIntV> subsets(TIntV nums, int k) {
+	backtrack(nums, 0, k);
+	return res;
+}
+
+void backtrack(TIntV nums, int start, int k) {
+	if (track.Len() == k) {
+		res.Add(track);
+		return;
+	}
+	
+	for (int i = start; i < nums.Len(); i++) {
+		track.Add(nums[i]);
+		backtrack(nums, i + 1, k);
+		track.DelLast();
+	}
+}
 
 
-//int main() {
-//	vector<int> nums = { 1,2,3 };
-//	subsets(nums);
-//	for (int i = 0; i < res.size(); i++) {
-//		cout << "[";
-//		for (int j = 0; j < res[i].size(); j++) {
-//			cout << res[i][j] << " ";
-//		}
-//		cout << "]";
-//		cout << endl;
-//	}
-//
-//}

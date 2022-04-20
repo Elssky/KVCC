@@ -6,11 +6,13 @@ int main() {
 	//<Dataset>            <max K-VCC>
 	//CA-AstroPh.txt			56
 	//web-Stanford.txt        71
-	//PUNGraph G = TSnap::LoadEdgeList<PUNGraph>("./dataset/CA-AstroPh.txt", 0, 1);
-	format_graph("./dataset/DBLP.txt");
-	//format_graph("D:/GitProject/KVCC-ENUM/dataset/CA-AstroPh.txt");
+	
 
-	//printf("G: \n node_nums = %d, edge_nums = %d\n", G->GetNodes(), G->GetEdges());
+	//preprocess
+	/*format_graph("./dataset/DBLP.txt");*/
+
+	PUNGraph G = TSnap::LoadEdgeList<PUNGraph>("./dataset/CA-AstroPh.txt", 0, 1);
+	printf("G: \n node_nums = %d, edge_nums = %d\n", G->GetNodes(), G->GetEdges());
 	//int K_Arr[] = {23, 34};
 	//for (int i = 0; i < sizeof(K_Arr)/sizeof(int); i += 1) {
 	//	int k = K_Arr[i];

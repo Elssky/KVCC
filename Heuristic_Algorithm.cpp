@@ -1,39 +1,43 @@
-//#include "Heuristic_Algorithm.h"
-//#include "Utility.h"
-//
-//BkVCC::BkVCC()
-//{
-//}
-//
-//BkVCC::BkVCC(PUNGraph G_, int k_)
-//{
-//	G = G_;
-//	k = k_;
-//}
-//
-//TUNGraV BkVCC::BkVCC_ENUM(PUNGraph G, int k)
-//{
-//	TUNGraV G_R, G_S, G_S_prime;
-//
-//	//find k-core
-//	PUNGraph G2 = TSnap::GetKCore(G, k);
-//
-//	//Seeding
-//	G_S = Seeding(G2, k);
-//
-//	while (G_S != G_S_prime) {
-//		G_S_prime = G_S;
-//		//expanding G_S
-//
-//		//merging G_S
-//
-//	}
-//
-//	// G_R = G_R Union G_S
-//	G_R.AddVMerged(G_S);
-//
-//	return G_R;
-//}
+#include "Heuristic_Algorithm.h"
+#include "Utility.h"
+
+BkVCC::BkVCC()
+{
+}
+
+BkVCC::BkVCC(PUNGraph G_, int k_)
+{
+	G = G_;
+	k = k_;
+}
+
+TUNGraV BkVCC::BkVCC_ENUM(PUNGraph G, int k)
+{
+	TUNGraV G_R, G_S, G_S_prime;
+
+	//find k-core
+	PUNGraph G2 = TSnap::GetKCore(G, k);
+
+	//Seeding
+	//G_S = Seeding(G2, k);
+
+	while (G_S.Len() != G_S_prime.Len()) { // TODO: 如何判断是否发生变化，仅靠长度肯定是不行的
+		G_S_prime = G_S;
+		//expanding G_S
+		//Expanding(G2, k, G_S);
+		//merging G_S
+		//Merging(G2, k, G_S, G_R);
+	}
+
+	// G_R = G_R Union G_S
+	// 
+	// error can not use this function
+	// 无法比较两个图是否相同，所以sort相关的函数比如AddMergedV(), Merge()都不能使用，除非重载运算符
+	G_R.AddV(G_S);
+
+
+	return G_R;
+}
 //
 //PUNGraph BkVCC::LkVCS(PUNGraph G, int k, int u, int alpha)
 //{
@@ -58,11 +62,13 @@
 //
 //		TIntV R = res[i];
 //		res[i].Add(u); // R = R Union u
-//		PUNGraph G_R = TSnap::GetSubGraph(G, R);
 //		bool direct = true;
-//		while (direct == true) {
+//		while (direct) {
+//
+//			//R may be updated
+//			PUNGraph G_R = TSnap::GetSubGraph(G, R);
 //			//set flag1 = ...
-//			if (flag1(G, G_R)) {
+//			if (flag1(G_R)) {
 //				return TSnap::GetSubGraph(G, R);
 //			}
 //			else {
@@ -72,6 +78,7 @@
 //				}
 //				else {
 //					//find ... and radomly choose ... vertices from ... adding into R
+//					Adding2Subset(P_prime, G_R, R);
 //				}
 //			}
 //
@@ -82,7 +89,7 @@
 //	return PUNGraph();
 //}
 //
-//bool BkVCC::flag1(PUNGraph G, PUNGraph G_R)
+//bool BkVCC::flag1(PUNGraph G_R)
 //{
 //	for (TUNGraph::TNodeI NI1 = G_R->BegNI(); NI1 < G_R->EndNI(); NI1++) {
 //		for (TUNGraph::TNodeI NI2 = NI1; NI2 < G_R->EndNI(); NI2++) {
@@ -107,6 +114,31 @@
 //		}
 //	}
 //	return false;
+//}
+//
+//void BkVCC::Adding2Subset(PUNGraph P_prime, PUNGraph G_R, TIntV &R)
+//{
+//	
+//	TIntV NbrV1, NbrV2;
+//	int num = 0;
+//	int total;
+//	for (TUNGraph::TNodeI NI1 = G_R->BegNI(); NI1 < G_R->EndNI(); NI1++) {
+//		for (TUNGraph::TNodeI NI2 = NI1; NI2 < G_R->EndNI(); NI2++) {
+//			if (NI2 == NI1)continue;
+//			if (TSnap::GetCmnNbrs(G_R, NI1.GetId(), NI2.GetId(), NbrV1) < k) {
+//				TSnap::GetCmnNbrs(P_prime, NI1.GetId(), NI2.GetId(), NbrV2);
+//				total = k - NbrV1.Len();
+//				//This is not randomly choose, which is different with paper
+//				for (TIntV::TIter NI = NbrV2.BegI(); NI < NbrV2.EndI(); NI++) {
+//					if (!NbrV1.IsIn(*NI)) {
+//						R.Add(*NI);
+//						num++;
+//						if (num >= total) return;
+//					}
+//				}
+//			}
+//		}
+//	}
 //}
 //
 //TUNGraV BkVCC::Seeding(PUNGraph G, int k)
@@ -143,10 +175,12 @@
 //
 //TUNGraV BkVCC::Expanding(PUNGraph G, int k, TUNGraV& G_S)
 //{
+//	int u;
+//	TIntV delta_S, delta_S_bar;
 //	for (TUNGraV::TIter GI = G_S.BegI(); GI < G_S.EndI(); GI++) {
-//		while (flag3) { //exist u belong delta_S, intersection > k
+//		while (flag3(G, *GI, u, delta_S, delta_S_bar)) { //exist u belong delta_S, intersection > k
 //			printNodesNum(*GI);
-//			//Update(G, *GI, u);
+//			Update(G, *GI, u);
 //			printNodesNum(*GI);  //Test if graph updates valid
 //		}
 //	}
@@ -170,14 +204,23 @@
 //	return delta_S;
 //}
 //
-//bool BkVCC::flag3(PUNGraph G, PUNGraph G_S, int u)
+//
+//
+//bool BkVCC::flag3(PUNGraph G, PUNGraph G_S, int& u, TIntV& delta_S, TIntV& delta_S_bar)
 //{
-//	TIntV delta_S_bar, nb_u;
-//	TIntV delta_S = GetBoundary(G, G_S, delta_S_bar);
+//	TIntV nb_u;
+//	delta_S = GetBoundary(G, G_S, delta_S_bar);
 //
 //	for (TIntV::TIter TI = delta_S_bar.BegI(); TI < delta_S_bar.EndI(); TI++) {
 //		//nb_u = getneighbor(G, *TI);
+//		const TUNGraph::TNodeI& CtrNode = G->GetNI(*TI);
+//		for (int i = 0; i < CtrNode.GetInDeg(); ++i) {
+//			if (!nb_u.IsIn(CtrNode.GetInNId(i)))
+//				nb_u.Add(CtrNode.GetInNId(i));
+//			
+//		}
 //		if (TSnap::GetCommon(nb_u, delta_S) >= k) {
+//			u = *TI;
 //			return true;
 //		}
 //	}
@@ -196,15 +239,16 @@
 //
 //TUNGraV BkVCC::Merging(PUNGraph G, int k, TUNGraV& G_S, TUNGraV& G_R)
 //{
+//	PUNGraph GI1, GI2;
 //	for (TUNGraV::TIter GI = G_S.BegI(); GI < G_S.EndI(); GI++) {
 //		if (IskVCC(G, *GI, k)) {
 //			G_R.Add(*GI);
 //			G_S.DelIfIn(*GI);
 //		}
 //	}
-//	while (true) { //exist GI1, GI2 satisfied IsMergeValid
-//		//PUNGraph G_Union = Merge2Graph(G, GI1, GI2);
-//		/*if (IskVCC(G, G_Union, k)) {
+//	while (flag4(G, G_S, GI1, GI2)) { //exist GI1, GI2 satisfied IsMergeValid
+//		PUNGraph G_Union = Merge2Graph(G, GI1, GI2);
+//		if (IskVCC(G, G_Union, k)) {
 //			G_R.Add(G_Union);
 //			G_S.DelIfIn(GI1);
 //			G_S.DelIfIn(GI2);
@@ -213,21 +257,87 @@
 //			G_S.Add(G_Union);
 //			G_S.DelIfIn(GI1);
 //			G_S.DelIfIn(GI2);
-//		}*/
+//		}
 //		
 //	}
 //	return TUNGraV();
 //}
 //
-//bool BkVCC::IskVCC(PUNGraph G, PUNGraph G_S, int k)
+//bool BkVCC::flag4(PUNGraph G, TUNGraV G_S, PUNGraph& G1, PUNGraph& G2)
 //{
-//	//Corollary 1
+//	for (TUNGraV::TIter GI1 = G_S.BegI(); GI1 < G_S.EndI(); GI1++) {
+//		for (TUNGraV::TIter GI2 = GI1; GI2 < G_S.EndI(); GI2++) {
+//			//if (*GI2 == *GI1)continue;
+//			if (IsMergeValid(G, *GI1, *GI2)) {
+//				G1 = *GI1;
+//				G2 = *GI2;
+//				return true;
+//			}
+//		}
+//	}
 //	return false;
 //}
 //
-//bool BkVCC::IsMergeValid(PUNGraph G, PUNGraph G_S, PUNGraph G_S_prime, int k)
+//bool BkVCC::IskVCC(PUNGraph G, PUNGraph G_S, int k)
+//{
+//	//Corollary 1
+//	int u;
+//	TIntV delta_S, delta_S_bar;
+//	if (!flag3(G, G_S, u, delta_S, delta_S_bar) && min(delta_S.Len(), delta_S_bar.Len()) < k) {
+//		return true;
+//	}
+//	return false;
+//}
+//
+//bool BkVCC::IsMergeValid(PUNGraph G, PUNGraph G_S, PUNGraph G_S_prime)
 //{
 //	//Theorem 7
+//	TIntV S_Nodes, S_prime_Nodes, S_ints_S_prime, S_sub_S_prime, S_prime_sub_S;
+//	PUNGraph S_exc_S_prime, S_prime_exc_S;
+//	int nb_1, nb_2;
+//	G_S->GetNIdV(S_Nodes);
+//	G_S_prime->GetNIdV(S_prime_Nodes);
+//	for (TIntV::TIter TI = S_Nodes.BegI(); TI < S_Nodes.EndI(); TI++) {
+//		if (S_prime_Nodes.IsIn(*TI)) {
+//			S_ints_S_prime.Add(*TI);
+//		}
+//	}
+//
+//	for (TIntV::TIter TI = S_Nodes.BegI(); TI < S_Nodes.EndI(); TI++) {
+//		if (!S_ints_S_prime.IsIn(*TI)) {
+//			S_sub_S_prime.Add(*TI);
+//		}
+//	}
+//	for (TIntV::TIter TI = S_prime_Nodes.BegI(); TI < S_prime_Nodes.EndI(); TI++) {
+//		if (!S_ints_S_prime.IsIn(*TI)) {
+//			S_prime_sub_S.Add(*TI);
+//		}
+//	}
+//	//S_exc_S_prime = TSnap::GetSubGraph(G, S_sub_S_prime);
+//	//S_prime_exc_S = TSnap::GetSubGraph(G, S_prime_sub_S);
+//
+//	for (TIntV::TIter TI = S_sub_S_prime.BegI(); TI < S_sub_S_prime.EndI(); TI++) {
+//		TUNGraph::TNodeI NI = G->GetNI(*TI);
+//		for (int i = 0; i < NI.GetInDeg(); i++) {
+//			if (S_prime_sub_S.IsIn(NI.GetNbrNId(i))) {
+//				nb_1++;
+//			}
+//		}
+//	}
+//
+//	for (TIntV::TIter TI = S_prime_sub_S.BegI(); TI < S_prime_sub_S.EndI(); TI++) {
+//		TUNGraph::TNodeI NI = G->GetNI(*TI);
+//		for (int i = 0; i < NI.GetInDeg(); i++) {
+//			if (S_sub_S_prime.IsIn(NI.GetNbrNId(i))) {
+//				nb_2++;
+//			}
+//		}
+//	}
+//
+//	if (S_ints_S_prime.Len() + min(nb_1, nb_2) >= k) {
+//		return true;
+//	}
+//	
 //	return false;
 //}
 //
@@ -239,6 +349,7 @@
 //	GI1->GetNIdV(Nodes1);
 //	GI2->GetNIdV(Nodes2);
 //	Nodes1.AddVMerged(Nodes2);
+//	TIntV S_sub_S_prime, S_prime_sub_S;
 //	return TSnap::GetSubGraph(G, Nodes1);
 //}
 //
