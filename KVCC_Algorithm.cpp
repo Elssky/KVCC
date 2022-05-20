@@ -114,16 +114,22 @@ TIntV VCCE::Global_Cut(PUNGraph G, int k) {
 		}
 	}
 
-	PUNGraph Neigh = TSnap::GetEgonet(SC, u, e); //N(u)
-	for (TUNGraph::TNodeI NI1 = Neigh->BegNI(); NI1 < Neigh->EndNI(); NI1++) {
-		for (TUNGraph::TNodeI NI2 = NI1; NI2 < Neigh->EndNI(); NI2++) {
-			S = Loc_Cut(NI1.GetId(), NI2.GetId(), SC_bar, SC, k);
-			if (S.Empty() == FALSE) {
-				//printf("2\n");
-				return S;
-			}
+	for (int i = 0; i < SC->GetNI(u).GetDeg(); i++) {
+		for (int j = i + 1; j < SC->GetNI(u).GetDeg(); j++) {
+			S = Loc_Cut(SC->GetNI(u).GetNbrNId(i), SC->GetNI(u).GetNbrNId(j), SC_bar, SC, k);
 		}
 	}
+
+	//PUNGraph Neigh = TSnap::GetEgonet(SC, u, e); //N(u)
+	//for (TUNGraph::TNodeI NI1 = Neigh->BegNI(); NI1 < Neigh->EndNI(); NI1++) {
+	//	for (TUNGraph::TNodeI NI2 = NI1; NI2 < Neigh->EndNI(); NI2++) {
+	//		S = Loc_Cut(NI1.GetId(), NI2.GetId(), SC_bar, SC, k);
+	//		if (S.Empty() == FALSE) {
+	//			//printf("2\n");
+	//			return S;
+	//		}
+	//	}
+	//}
 	//printf("3\n");
 	return {};
 }
@@ -255,9 +261,10 @@ TIntV VCCE::Loc_Cut(int source, int sink, PNEANet DG, PUNGraph G, int k) {
 	TIntV ResNet;
 	PNEANet DG2 = TNEANet::New();
 	*DG2 = *DG;
-	int e;//take place
-	PUNGraph Neigh = TSnap::GetEgonet(G, source - offset, e); //N(u)
-	if (source == sink || Neigh->IsNode(sink)) {
+	//int e;//take place
+	//PUNGraph Neigh = TSnap::GetEgonet(G, source - offset, e); //N(u)
+	
+	if (source == sink || G->GetNI(source - offset).IsNbrNId(sink)) {
 		_time4 += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
 		////printf("%fs\n", (clock() - t1) * 1.0 / CLOCKS_PER_SEC);
 		m4++;

@@ -6,7 +6,7 @@ public:
 	int Nodes; //Nodes Num
 	//int flag = 0;
 	//TIntV SSV = {}; //strong side vertex
-	VCCE_S(PUNGraph G_, int k_, int Compute_SSV_times_);
+	VCCE_S(PUNGraph G_, int k_, int Compute_SSV_times_ = 0);
 	TUNGraV KVCC_ENUM(PUNGraph G, int k, int flag = 0);
 	int Compute_SSV_times;
 	int pru_node = 0;
