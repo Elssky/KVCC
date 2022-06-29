@@ -4,20 +4,20 @@
 typedef TVec<TInt> TIntV;
 typedef TVec<PUNGraph> TUNGraV;
 typedef TPt<TUNGraph> PUNGraph;
-
+typedef TVec<TIntV> TIntVIntV;
 class BkVCC {
 public:
 	PUNGraph G;
 	int k;
 	BkVCC();
 	BkVCC(PUNGraph G_, int k_);
-	TUNGraV BkVCC_ENUM(PUNGraph G, int k);
+	TIntVIntV BkVCC_ENUM(PUNGraph G, int k);
 protected:
-	//PUNGraph LkVCS(PUNGraph G, int k, int u, int alpha);
-	//bool flag1(PUNGraph G_R);
-	//bool flag2(PUNGraph P_prime, PUNGraph G_R);
-	//void Adding2Subset(PUNGraph P_prime, PUNGraph G_R, TIntV& R);
-	//TUNGraV Seeding(PUNGraph G, int k);
+	TIntV LkVCS(PUNGraph G, int k, int u, int alpha);
+	bool flag1(PUNGraph G_R);
+	bool flag2(PUNGraph P_prime, PUNGraph G_R);
+	void Adding2Subset(PUNGraph P_prime, PUNGraph G_R, TIntV& R);
+	TIntVIntV Seeding(PUNGraph G, int k);
 	//TUNGraV Expanding(PUNGraph G, int k, TUNGraV &G_S);
 	//TIntV GetBoundary(PUNGraph G, PUNGraph G_S, TIntV &delta_S_bar);	
 	//bool flag3(PUNGraph G, PUNGraph G_S, int& u, TIntV& delta_S, TIntV& delta_S_bar);

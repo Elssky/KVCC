@@ -141,14 +141,17 @@ void format_graph(string src)
 
 TVec<TIntV> res;
 TIntV track;
-void backtrack(TIntV nums, int start, int k);
+void backtrack(TIntV nums, int start, int k, int alpha);
 
-TVec<TIntV> subsets(TIntV nums, int k) {
-	backtrack(nums, 0, k);
+TVec<TIntV> subsets(TIntV nums, int k, int alpha) {
+	backtrack(nums, 0, k, alpha);
 	return res;
 }
 
-void backtrack(TIntV nums, int start, int k) {
+void backtrack(TIntV nums, int start, int k, int alpha) {
+	if (res.Len() >= alpha) {
+		return;
+	}
 	if (track.Len() == k) {
 		res.Add(track);
 		return;
@@ -156,7 +159,7 @@ void backtrack(TIntV nums, int start, int k) {
 	
 	for (int i = start; i < nums.Len(); i++) {
 		track.Add(nums[i]);
-		backtrack(nums, i + 1, k);
+		backtrack(nums, i + 1, k, alpha);
 		track.DelLast();
 	}
 }

@@ -11,15 +11,15 @@ BkVCC::BkVCC(PUNGraph G_, int k_)
 	k = k_;
 }
 
-TUNGraV BkVCC::BkVCC_ENUM(PUNGraph G, int k)
+TIntVIntV BkVCC::BkVCC_ENUM(PUNGraph G, int k)
 {
-	TUNGraV G_R, G_S, G_S_prime;
+	TIntVIntV G_R, G_S, G_S_prime; 
 
 	//find k-core
 	PUNGraph G2 = TSnap::GetKCore(G, k);
-
+	printf("G2: \nnode_nums = %d, edge_nums = %d\n", G2->GetNodes(), G2->GetEdges());
 	//Seeding
-	//G_S = Seeding(G2, k);
+	G_S = Seeding(G2, k);
 
 	while (G_S.Len() != G_S_prime.Len()) { // TODO: 如何判断是否发生变化，仅靠长度肯定是不行的
 		G_S_prime = G_S;
@@ -38,137 +38,157 @@ TUNGraV BkVCC::BkVCC_ENUM(PUNGraph G, int k)
 
 	return G_R;
 }
-//
-//PUNGraph BkVCC::LkVCS(PUNGraph G, int k, int u, int alpha)
-//{
-//	// params: 
-//	//	  alpha: upper bound for selecting subset with size k
-//	PUNGraph P = TSnap::GetEgonetHop(G, u, 2); // P = N_2(u)
-//	PUNGraph P_prime = TSnap::GetKCore(P, k);
-//	int e; //take place
-//	if (!P_prime->IsNode(u)) {
-//		return {};
-//	}
-//
-//	PUNGraph nb_P_prime = TSnap::GetEgonet(P_prime, u, e);
-//	TIntV nb_set;
-//	for (TUNGraph::TNodeI NI = nb_P_prime->BegNI(); NI < nb_P_prime->EndNI(); NI++) {
-//		nb_set.Add(NI.GetId());
-//	}
-//	nb_set.DelIfIn(u); //remove u
-//	nb_set.Merge(); // Sorts the vector and only keeps a single element of each value.
-//	TVec<TIntV> res = subsets(nb_set, k);
-//	for (int i = 0; i < res.Len() && i <= alpha; i++) {
-//
-//		TIntV R = res[i];
-//		res[i].Add(u); // R = R Union u
-//		bool direct = true;
-//		while (direct) {
-//
-//			//R may be updated
-//			PUNGraph G_R = TSnap::GetSubGraph(G, R);
-//			//set flag1 = ...
-//			if (flag1(G_R)) {
-//				return TSnap::GetSubGraph(G, R);
-//			}
-//			else {
-//				// set flag2 = ...
-//				if (flag2(P_prime, G_R)) {
-//					direct = false;
-//				}
-//				else {
-//					//find ... and radomly choose ... vertices from ... adding into R
-//					Adding2Subset(P_prime, G_R, R);
-//				}
-//			}
-//
-//		}
-//
-//	}
-//
-//	return PUNGraph();
-//}
-//
-//bool BkVCC::flag1(PUNGraph G_R)
-//{
-//	for (TUNGraph::TNodeI NI1 = G_R->BegNI(); NI1 < G_R->EndNI(); NI1++) {
-//		for (TUNGraph::TNodeI NI2 = NI1; NI2 < G_R->EndNI(); NI2++) {
-//			if (NI2 == NI1)continue;
-//			if (TSnap::GetCmnNbrs(G_R, NI1.GetId(), NI2.GetId()) < k) {
-//				return false;
-//			}
-//		}
-//	}
-//	return true;
-//}
-//
-//bool BkVCC::flag2(PUNGraph P_prime, PUNGraph G_R)
-//{
-//
-//	for (TUNGraph::TNodeI NI1 = G_R->BegNI(); NI1 < G_R->EndNI(); NI1++) {
-//		for (TUNGraph::TNodeI NI2 = NI1; NI2 < G_R->EndNI(); NI2++) {
-//			if (NI2 == NI1)continue;
-//			if (TSnap::GetCmnNbrs(P_prime, NI1.GetId(), NI2.GetId()) < k) {
-//				return true;
-//			}
-//		}
-//	}
-//	return false;
-//}
-//
-//void BkVCC::Adding2Subset(PUNGraph P_prime, PUNGraph G_R, TIntV &R)
-//{
-//	
-//	TIntV NbrV1, NbrV2;
-//	int num = 0;
-//	int total;
-//	for (TUNGraph::TNodeI NI1 = G_R->BegNI(); NI1 < G_R->EndNI(); NI1++) {
-//		for (TUNGraph::TNodeI NI2 = NI1; NI2 < G_R->EndNI(); NI2++) {
-//			if (NI2 == NI1)continue;
-//			if (TSnap::GetCmnNbrs(G_R, NI1.GetId(), NI2.GetId(), NbrV1) < k) {
-//				TSnap::GetCmnNbrs(P_prime, NI1.GetId(), NI2.GetId(), NbrV2);
-//				total = k - NbrV1.Len();
-//				//This is not randomly choose, which is different with paper
-//				for (TIntV::TIter NI = NbrV2.BegI(); NI < NbrV2.EndI(); NI++) {
-//					if (!NbrV1.IsIn(*NI)) {
-//						R.Add(*NI);
-//						num++;
-//						if (num >= total) return;
-//					}
-//				}
-//			}
-//		}
-//	}
-//}
-//
-//TUNGraV BkVCC::Seeding(PUNGraph G, int k)
-//{
-//	TUNGraV G_S;
-//	PUNGraph G_C;
-//	TIntH CandMaintain, deg;
-//	int alpha = INT_MAX;
-//
-//	for (TUNGraph::TNodeI NI = G->BegNI(); NI < G->EndNI(); NI++) {
-//		CandMaintain.AddDat(NI.GetId(), 0);
-//		deg.AddDat(NI.GetId(), NI.GetDeg());
-//	}
-//	deg.SortByDat();
-//	for (TIntH::TIter HI = deg.BegI(); HI < deg.EndI(); HI++) {
-//		int v = HI.GetKey();
-//		if (CandMaintain.GetDat(v) == 0) {
-//			G_C = LkVCS(G, k, v, alpha);
-//			if (G_C->GetNodes() != 0) {
-//				G_S.AddUnique(G_C);
-//				for (TUNGraph::TNodeI NI = G_C->BegNI(); NI < G_C->EndNI(); NI++) {
-//					CandMaintain.GetDat(v) = 1;
-//				}
-//			}
-//		}
-//	}
-//
-//	return G_S;
-//}
-//
+
+TIntV BkVCC::LkVCS(PUNGraph G, int k, int u, int alpha)
+{
+	// params: 
+	//	  alpha: upper bound for selecting subset with size k
+
+	PUNGraph P = TSnap::GetEgonetHop(G, u, 2); // P = N_2(u)
+	//printf("P : \nnode_nums = %d, edge_nums = %d\n", P->GetNodes(), P->GetEdges());
+	PUNGraph P_prime = TSnap::GetKCore(P, k);
+	 //printf("P_prime: \nnode_nums = %d, edge_nums = %d\n", P_prime->GetNodes(), P_prime->GetEdges());
+	int e; //take place
+	if (!P_prime->IsNode(u)) {
+		return {};
+	}
+
+	
+	TIntV nb_set;
+	TUNGraph::TNodeI u_Node = P_prime->GetNI(u);
+	for (int i = 0; i < u_Node.GetInDeg(); ++i) {
+		nb_set.Add(u_Node.GetInNId(i));
+	}
+
+	//nb_set.DelIfIn(u); //remove u
+
+	TIntVIntV res = subsets(nb_set, k, alpha);
+
+	for (int i = 0; i < res.Len() && i <= alpha; i++) {
+
+		TIntV R = res[i];
+
+		R.Add(u); // R = R Union u
+		R.Merge();
+		bool direct = true;
+		while (direct) {
+
+			//R may be updated
+			PUNGraph G_R = TSnap::GetSubGraph(G, R);
+			//set flag1 = ...
+			if (flag1(G_R)) {
+				cout << "flag1" << endl;
+				return R;
+			}
+			else {
+				// set flag2 = ...
+				if (flag2(P_prime, G_R)) {
+					cout << "flag2" << endl;
+					direct = false;
+				}
+				else {
+					cout << "flag3" << endl;
+					//find ... and radomly choose ... vertices from ... adding into R
+					Adding2Subset(P_prime, G_R, R);
+				}
+			}
+
+		}
+
+	}
+
+	return {};
+}
+
+bool BkVCC::flag1(PUNGraph G_R)
+{
+	
+	for (TUNGraph::TNodeI NI1 = G_R->BegNI(); NI1 < G_R->EndNI(); NI1++) {
+		for (TUNGraph::TNodeI NI2 = NI1; NI2 < G_R->EndNI(); NI2++) {
+			if (NI2 == NI1 || G->IsEdge(NI1.GetId(), NI2.GetId())) continue;
+
+			if (TSnap::GetCmnNbrs(G_R, NI1.GetId(), NI2.GetId()) < k  ) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+bool BkVCC::flag2(PUNGraph P_prime, PUNGraph G_R)
+{
+
+	for (TUNGraph::TNodeI NI1 = G_R->BegNI(); NI1 < G_R->EndNI(); NI1++) {
+		for (TUNGraph::TNodeI NI2 = NI1; NI2 < G_R->EndNI(); NI2++) {
+			if (NI2 == NI1 || G->IsEdge(NI1.GetId(), NI2.GetId()))continue;
+
+			if (TSnap::GetCmnNbrs(P_prime, NI1.GetId(), NI2.GetId()) < k) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+void BkVCC::Adding2Subset(PUNGraph P_prime, PUNGraph G_R, TIntV &R)
+{
+	
+	TIntV NbrV1, NbrV2;
+	int num = 0;
+	int total;
+	for (TUNGraph::TNodeI NI1 = G_R->BegNI(); NI1 < G_R->EndNI(); NI1++) {
+		for (TUNGraph::TNodeI NI2 = NI1; NI2 < G_R->EndNI(); NI2++) {
+			if (NI2 == NI1)continue;
+			if (TSnap::GetCmnNbrs(G_R, NI1.GetId(), NI2.GetId(), NbrV1) < k) {
+				TSnap::GetCmnNbrs(P_prime, NI1.GetId(), NI2.GetId(), NbrV2);
+				total = k - NbrV1.Len();
+				//This is not randomly choose, which is different with paper
+				for (TIntV::TIter NI = NbrV2.BegI(); NI < NbrV2.EndI(); NI++) {
+					if (!NbrV1.IsIn(*NI)) {
+						R.Add(*NI);
+						num++;
+						if (num >= total) return;
+					}
+				}
+			}
+		}
+	}
+}
+
+TIntVIntV BkVCC::Seeding(PUNGraph G, int k)
+{
+	TIntVIntV G_S;
+	TIntV G_C;
+	TIntH CandMaintain, deg;
+	int alpha = INT_MAX;
+
+	for (TUNGraph::TNodeI NI = G->BegNI(); NI < G->EndNI(); NI++) {
+		CandMaintain.AddDat(NI.GetId(), 0);
+		deg.AddDat(NI.GetId(), NI.GetDeg());
+	}
+	deg.SortByDat(false); //non decreasing order
+
+	for (TIntH::TIter HI = deg.BegI(); HI < deg.EndI(); HI++) {
+		//cout << HI.GetKey() <<" " << HI.GetDat() << endl;
+
+		int v = HI.GetKey();
+		if (CandMaintain.GetDat(v) == 0) {
+			G_C = LkVCS(G, k, v, alpha);			
+			if (G_C.Empty()) continue;
+
+			//G_S.AddUnique(G_C); //怎么判断是否相等（Unique）？
+			G_S.Add(G_C);
+			
+
+			for (TIntV::TIter TI = G_C.BegI(); TI < G_C.EndI(); TI++) {
+				CandMaintain.GetDat(*TI) = 1;
+			}
+		}
+	}
+	
+	return G_S;
+}
+
 //void printNodesNum(PUNGraph G) {
 //	cout << "Nodes:"<< G->GetNodes() << endl;
 //}
