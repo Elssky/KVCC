@@ -11,7 +11,7 @@ public:
 	int k;
 	BkVCC();
 	BkVCC(PUNGraph G_, int k_);
-	TIntVIntV BkVCC_ENUM(PUNGraph G, int k);
+	TIntVIntV BkVCC_ENUM(PUNGraph &G, int k);
 protected:
 	TIntV LkVCS(PUNGraph G, int k, int u, int alpha);
 	bool flag1(PUNGraph G_R);

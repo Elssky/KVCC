@@ -37,7 +37,7 @@ int main() {
 	//cout << res.Len();
 	PUNGraph G = TSnap::LoadEdgeList<PUNGraph>("./dataset/DBLP.txt", 0, 1);
 	printf("G: \nnode_nums = %d, edge_nums = %d\n", G->GetNodes(), G->GetEdges());
-	BkVCC BkVCC(G, 40);
+	BkVCC BkVCC(G, 5);
 	TIntVIntV VCC1 = BkVCC.BkVCC_ENUM(BkVCC.G, BkVCC.k);
 	int j = 0;
 
