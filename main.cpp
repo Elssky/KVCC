@@ -35,9 +35,12 @@ int main() {
 	//}
 	//TVec<TIntV> res = subsets(nums, 5, 1000);
 	//cout << res.Len();
-	PUNGraph G = TSnap::LoadEdgeList<PUNGraph>("./dataset/DBLP.txt", 0, 1);
+	TStr dataset = "BkFig";
+	PUNGraph G = TSnap::LoadEdgeList<PUNGraph>("./dataset/"+ dataset +".txt", 0, 1);
+	
 	printf("G: \nnode_nums = %d, edge_nums = %d\n", G->GetNodes(), G->GetEdges());
-	BkVCC BkVCC(G, 5);
+	BkVCC BkVCC(G, 3);
+	BkVCC.dataset = dataset;
 	TIntVIntV VCC1 = BkVCC.BkVCC_ENUM(BkVCC.G, BkVCC.k);
 	int j = 0;
 
@@ -45,7 +48,9 @@ int main() {
 	for (TIntVIntV::TIter GI = VCC1.BegI(); GI < VCC1.EndI(); GI++) {
 		PUNGraph GI_Graph = TSnap::GetSubGraph(G, *GI);
 		printf("K-VCC(No.%d): node_nums = %d, edge_nums = %d\n", ++j, TSnap::CntNonZNodes(GI_Graph), TSnap::CntUniqUndirEdges(GI_Graph));
-
+		for (TIntV::TIter NI = GI->BegI(); NI < GI->EndI(); NI++) {
+			cout << *NI<<" ";
+		}
 		cout << endl;
 
 	}

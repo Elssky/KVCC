@@ -21,13 +21,14 @@ TIntVIntV BkVCC::BkVCC_ENUM(PUNGraph &G, int k)
 	//Seeding
 	G_S = Seeding(G, k);
 
-	while (G_S.Len() != G_S_prime.Len()) { // TODO: 如何判断是否发生变化，仅靠长度肯定是不行的
+	do {
 		G_S_prime = G_S;
 		//expanding G_S
-		//Expanding(G2, k, G_S);
+		Expanding(k, G_S);
 		//merging G_S
 		//Merging(G2, k, G_S, G_R);
-	}
+		
+	} while (G_S != G_S_prime); // TODO: 如何判断是否发生变化，仅靠长度肯定是不行的 FINISH:用顶点数组表示一张图，对比数组即可
 
 	// G_R = G_R Union G_S
 	// 
@@ -50,6 +51,10 @@ TIntV BkVCC::LkVCS(PUNGraph G, int k, int u, int alpha)
 	//printf("P: \nnode_nums = %d, edge_nums = %d\n", P->GetNodes(), P->GetEdges());
 	
 	PUNGraph P_prime = TSnap::GetKCore(P, k);
+	//for (TUNGraph::TNodeI NI1 = P_prime->BegNI(); NI1 < P_prime->EndNI(); NI1++) {
+	//	cout << NI1.GetId() << " ";
+	//}
+	//cout << endl;
 	//printf("P_prime: \nnode_nums = %d, edge_nums = %d\n", P_prime->GetNodes(), P_prime->GetEdges());
 	int e; //take place
 	if (!P_prime->IsNode(u)) {
@@ -171,6 +176,19 @@ TIntVIntV BkVCC::Seeding(PUNGraph G, int k)
 	int i = 0;
 	int alpha = 1000;
 
+	//try
+	//{
+	//	TFIn inFile("./seedgraph/" + dataset + ".seed");
+	//	G_S.Load(inFile);
+	//}
+	//catch (TPt<TExcept>)
+	//{
+	//	cout << endl << "***seedgraph does not exist, running seeding function...***" << endl;
+	//}
+	//
+	//if (G_S.Len() != 0) return G_S;
+
+
 	for (TUNGraph::TNodeI NI = G->BegNI(); NI < G->EndNI(); NI++) {
 		CandMaintain.AddDat(NI.GetId(), 0);
 		deg.AddDat(NI.GetId(), NI.GetDeg());
@@ -186,8 +204,8 @@ TIntVIntV BkVCC::Seeding(PUNGraph G, int k)
 			//cout<< ++i <<endl;
 			if (G_C.Empty()) continue;
 
-			//G_S.AddUnique(G_C); //怎么判断是否相等（Unique）？
-			G_S.Add(G_C);
+			G_S.AddUnique(G_C); //怎么判断是否相等（Unique）？
+			//G_S.Add(G_C);
 			
 
 			for (TIntV::TIter TI = G_C.BegI(); TI < G_C.EndI(); TI++) {
@@ -195,81 +213,140 @@ TIntVIntV BkVCC::Seeding(PUNGraph G, int k)
 			}
 		}
 		if (CandMaintain.GetDat(v) == 1) {
-			cout << "sweeped" << endl;
+			//cout << "sweeped" << endl;
 		}
 	}
-	
+
+	TFOut outFile("./seedgraph/" + dataset + ".seed");
+	G_S.Save(outFile);
 	return G_S;
 }
 
 //void printNodesNum(PUNGraph G) {
 //	cout << "Nodes:"<< G->GetNodes() << endl;
 //}
-//
-//TUNGraV BkVCC::Expanding(PUNGraph G, int k, TUNGraV& G_S)
-//{
-//	int u;
-//	TIntV delta_S, delta_S_bar;
-//	for (TUNGraV::TIter GI = G_S.BegI(); GI < G_S.EndI(); GI++) {
-//		while (flag3(G, *GI, u, delta_S, delta_S_bar)) { //exist u belong delta_S, intersection > k
-//			printNodesNum(*GI);
-//			Update(G, *GI, u);
-//			printNodesNum(*GI);  //Test if graph updates valid
-//		}
-//	}
-//	return TUNGraV();
-//}
-//
-//TIntV BkVCC::GetBoundary(PUNGraph G, PUNGraph G_S, TIntV &delta_S_bar)
-//{
-//	TIntV delta_S;
-//	for (TUNGraph::TNodeI NI = G_S->BegNI(); NI < G_S->EndNI(); NI++) {
-//		for (int i = 0; i < NI.GetInDeg(); i++) {
-//			if (!G_S->IsNode(NI.GetNbrNId(i))) {
-//				delta_S.Add(NI.GetId());
-//				delta_S_bar.Add(NI.GetNbrNId(i));
-//				//break;
-//			}
-//		}
-//	}
-//	delta_S.Merge();
-//	delta_S_bar.Merge();
-//	return delta_S;
-//}
-//
-//
-//
-//bool BkVCC::flag3(PUNGraph G, PUNGraph G_S, int& u, TIntV& delta_S, TIntV& delta_S_bar)
-//{
-//	TIntV nb_u;
-//	delta_S = GetBoundary(G, G_S, delta_S_bar);
-//
-//	for (TIntV::TIter TI = delta_S_bar.BegI(); TI < delta_S_bar.EndI(); TI++) {
-//		//nb_u = getneighbor(G, *TI);
-//		const TUNGraph::TNodeI& CtrNode = G->GetNI(*TI);
-//		for (int i = 0; i < CtrNode.GetInDeg(); ++i) {
-//			if (!nb_u.IsIn(CtrNode.GetInNId(i)))
-//				nb_u.Add(CtrNode.GetInNId(i));
-//			
-//		}
-//		if (TSnap::GetCommon(nb_u, delta_S) >= k) {
-//			u = *TI;
-//			return true;
-//		}
-//	}
-//	return false;
-//}
-//
-//void BkVCC::Update(PUNGraph G, PUNGraph& GI, int u)
+
+void BkVCC::Expanding(int k, TIntVIntV& G_S)
+{
+	int u;
+	TIntV delta_S, delta_S_bar;
+	for (TIntVIntV::TIter GI = G_S.BegI(); GI < G_S.EndI(); GI++) {
+		//for (TIntV::TIter NI = GI->BegI(); NI < GI->EndI(); NI++) {
+		//	cout << *NI << " ";
+		//}
+		//cout << endl;
+		while (flag3(*GI, u, delta_S, delta_S_bar)) { //exist u belong delta_S, intersection > k
+			
+			/*Update(G, *GI, u);*/
+			GI->AddUnique(u);
+			/*cout << "Nodes:" << GI->Len() << endl;*/  //Test if graph updates valid
+		}
+		GI->Merge();
+	}
+	G_S.Merge();
+	return;
+}
+
+TIntV BkVCC::GetBoundary(TIntV G_S, TIntV &delta_S_bar)
+{
+	TIntV delta_S;
+	delta_S.Clr();
+	delta_S_bar.Clr();
+	//PUNGraph G_S_Graph = TSnap::GetSubGraph(G, G_S);
+	//cout << G_S_Graph->GetNodes() << endl;
+	//for (TUNGraph::TNodeI NI = G_S_Graph->BegNI(); NI < G_S_Graph->EndNI(); NI++) {
+	//	cout << NI.GetId() << " ";
+	//}
+	//cout << endl;
+	//for (TUNGraph::TNodeI NI = G_S_Graph->BegNI(); NI < G_S_Graph->EndNI(); NI++) {
+	//	cout << NI.GetId() << endl;
+	//	for (int i = 0; i < NI.GetInDeg(); i++) {
+	//		cout << "nbr:" << NI.GetNbrNId(i) << endl;
+	//		if (!G_S_Graph->IsNode(NI.GetNbrNId(i))) {
+	//			delta_S.Add(NI.GetId());
+	//			delta_S_bar.Add(NI.GetNbrNId(i));
+	//			//break;
+	//		}
+	//	}
+	//}
+	/*cout << G_S.Len() << endl;*/
+	//for (TIntV::TIter NI = G_S.BegI(); NI < G_S.EndI(); NI++) {
+	//	cout << *NI << " ";
+	//}
+	//cout << endl;
+	for (TIntV::TIter NI = G_S.BegI(); NI < G_S.EndI(); NI++) {
+		/*cout << *NI << endl;*/
+		TUNGraph::TNodeI Node = G->GetNI(*NI);
+		for (int i = 0; i < Node.GetInDeg(); i++) {
+			/*cout << "nbr:" << Node.GetNbrNId(i) << endl;*/
+			if (!G_S.IsIn(Node.GetNbrNId(i))) {
+				delta_S.Add(Node.GetId());
+				delta_S_bar.Add(Node.GetNbrNId(i));
+				//break;
+			}
+		}
+	}
+	delta_S.Merge();
+	delta_S_bar.Merge();
+	//cout << delta_S.Len() << endl;
+	//cout << delta_S_bar.Len() << endl;
+	
+	return delta_S;
+}
+
+
+
+bool BkVCC::flag3(TIntV G_S, int& u, TIntV& delta_S, TIntV& delta_S_bar)
+{
+	
+	delta_S = GetBoundary(G_S, delta_S_bar);
+	TIntV nb_u;
+	//cout << "delta_S: ";
+	//for (TIntV::TIter TI = delta_S.BegI(); TI < delta_S.EndI(); TI++) {
+	//	cout << *TI <<" ";
+	//}
+	//cout << endl;
+	//cout << "delta_S_bar: ";
+	//for (TIntV::TIter TI = delta_S_bar.BegI(); TI < delta_S_bar.EndI(); TI++) {
+	//	cout << *TI << " ";
+	//}
+	//cout << endl;
+	//cout << delta_S.Len() << endl;
+	for (TIntV::TIter TI = delta_S_bar.BegI(); TI < delta_S_bar.EndI(); TI++) {
+		//cout << *TI << endl;
+		nb_u.Clr();
+		//nb_u = getneighbor(G, *TI);
+		TUNGraph::TNodeI CtrNode = G->GetNI(*TI);
+		for (int i = 0; i < CtrNode.GetInDeg(); ++i) {
+			if (!nb_u.IsIn(CtrNode.GetInNId(i)))
+				nb_u.Add(CtrNode.GetInNId(i));
+		}
+		/*cout << nb_u.Len() << endl;*/
+		//cout << "nb_u: ";
+		//for (TIntV::TIter TI = nb_u.BegI(); TI < nb_u.EndI(); TI++) {
+		//	cout <<*TI<<" ";
+		//}
+		//cout << endl;
+		//cout << "nb_nums: " << TSnap::GetCommon(nb_u, delta_S) << endl;
+		if (TSnap::GetCommon(nb_u, delta_S) >= k) {
+			u = *TI;
+			return true;
+		}
+	}
+	return false;
+}
+
+//void BkVCC::Update(PUNGraph G, TIntV& GI, int u)
 //{
 //	TIntV Nodes;
 //	GI->GetNIdV(Nodes);
 //	Nodes.Add(u);
 //	GI = TSnap::GetSubGraph(G, Nodes);
+//	GI.Add(u);
 //}
-//
-//
-//
+
+
+
 //TUNGraV BkVCC::Merging(PUNGraph G, int k, TUNGraV& G_S, TUNGraV& G_R)
 //{
 //	PUNGraph GI1, GI2;
