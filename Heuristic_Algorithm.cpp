@@ -26,7 +26,7 @@ TIntVIntV BkVCC::BkVCC_ENUM(PUNGraph &G, int k)
 		//expanding G_S
 		Expanding(k, G_S);
 		//merging G_S
-		//Merging(G2, k, G_S, G_R);
+		Merging(k, G_S, G_R);
 		
 	} while (G_S != G_S_prime); // TODO: 如何判断是否发生变化，仅靠长度肯定是不行的 FINISH:用顶点数组表示一张图，对比数组即可
 
@@ -34,7 +34,7 @@ TIntVIntV BkVCC::BkVCC_ENUM(PUNGraph &G, int k)
 	// 
 	// error can not use this function
 	// 无法比较两个图是否相同，所以sort相关的函数比如AddMergedV(), Merge()都不能使用，除非重载运算符
-	G_R.AddV(G_S);
+	G_R.AddVMerged(G_S);
 
 
 	return G_R;
@@ -176,17 +176,17 @@ TIntVIntV BkVCC::Seeding(PUNGraph G, int k)
 	int i = 0;
 	int alpha = 1000;
 
-	//try
-	//{
-	//	TFIn inFile("./seedgraph/" + dataset + ".seed");
-	//	G_S.Load(inFile);
-	//}
-	//catch (TPt<TExcept>)
-	//{
-	//	cout << endl << "***seedgraph does not exist, running seeding function...***" << endl;
-	//}
-	//
-	//if (G_S.Len() != 0) return G_S;
+	try
+	{
+		TFIn inFile("./seedgraph/" + dataset + ".seed");
+		G_S.Load(inFile);
+	}
+	catch (TPt<TExcept>)
+	{
+		cout << endl << "***seedgraph does not exist, running seeding function...***" << endl;
+	}
+	
+	if (G_S.Len() != 0) return G_S;
 
 
 	for (TUNGraph::TNodeI NI = G->BegNI(); NI < G->EndNI(); NI++) {
@@ -347,110 +347,149 @@ bool BkVCC::flag3(TIntV G_S, int& u, TIntV& delta_S, TIntV& delta_S_bar)
 
 
 
-//TUNGraV BkVCC::Merging(PUNGraph G, int k, TUNGraV& G_S, TUNGraV& G_R)
-//{
-//	PUNGraph GI1, GI2;
-//	for (TUNGraV::TIter GI = G_S.BegI(); GI < G_S.EndI(); GI++) {
-//		if (IskVCC(G, *GI, k)) {
-//			G_R.Add(*GI);
-//			G_S.DelIfIn(*GI);
-//		}
-//	}
-//	while (flag4(G, G_S, GI1, GI2)) { //exist GI1, GI2 satisfied IsMergeValid
-//		PUNGraph G_Union = Merge2Graph(G, GI1, GI2);
-//		if (IskVCC(G, G_Union, k)) {
-//			G_R.Add(G_Union);
-//			G_S.DelIfIn(GI1);
-//			G_S.DelIfIn(GI2);
-//		}
-//		else {
-//			G_S.Add(G_Union);
-//			G_S.DelIfIn(GI1);
-//			G_S.DelIfIn(GI2);
-//		}
-//		
-//	}
-//	return TUNGraV();
-//}
-//
-//bool BkVCC::flag4(PUNGraph G, TUNGraV G_S, PUNGraph& G1, PUNGraph& G2)
-//{
-//	for (TUNGraV::TIter GI1 = G_S.BegI(); GI1 < G_S.EndI(); GI1++) {
-//		for (TUNGraV::TIter GI2 = GI1; GI2 < G_S.EndI(); GI2++) {
-//			//if (*GI2 == *GI1)continue;
-//			if (IsMergeValid(G, *GI1, *GI2)) {
-//				G1 = *GI1;
-//				G2 = *GI2;
-//				return true;
-//			}
-//		}
-//	}
-//	return false;
-//}
-//
-//bool BkVCC::IskVCC(PUNGraph G, PUNGraph G_S, int k)
-//{
-//	//Corollary 1
-//	int u;
-//	TIntV delta_S, delta_S_bar;
-//	if (!flag3(G, G_S, u, delta_S, delta_S_bar) && min(delta_S.Len(), delta_S_bar.Len()) < k) {
-//		return true;
-//	}
-//	return false;
-//}
-//
-//bool BkVCC::IsMergeValid(PUNGraph G, PUNGraph G_S, PUNGraph G_S_prime)
-//{
-//	//Theorem 7
-//	TIntV S_Nodes, S_prime_Nodes, S_ints_S_prime, S_sub_S_prime, S_prime_sub_S;
-//	PUNGraph S_exc_S_prime, S_prime_exc_S;
-//	int nb_1, nb_2;
-//	G_S->GetNIdV(S_Nodes);
-//	G_S_prime->GetNIdV(S_prime_Nodes);
-//	for (TIntV::TIter TI = S_Nodes.BegI(); TI < S_Nodes.EndI(); TI++) {
-//		if (S_prime_Nodes.IsIn(*TI)) {
-//			S_ints_S_prime.Add(*TI);
-//		}
-//	}
-//
-//	for (TIntV::TIter TI = S_Nodes.BegI(); TI < S_Nodes.EndI(); TI++) {
-//		if (!S_ints_S_prime.IsIn(*TI)) {
-//			S_sub_S_prime.Add(*TI);
-//		}
-//	}
-//	for (TIntV::TIter TI = S_prime_Nodes.BegI(); TI < S_prime_Nodes.EndI(); TI++) {
-//		if (!S_ints_S_prime.IsIn(*TI)) {
-//			S_prime_sub_S.Add(*TI);
-//		}
-//	}
-//	//S_exc_S_prime = TSnap::GetSubGraph(G, S_sub_S_prime);
-//	//S_prime_exc_S = TSnap::GetSubGraph(G, S_prime_sub_S);
-//
-//	for (TIntV::TIter TI = S_sub_S_prime.BegI(); TI < S_sub_S_prime.EndI(); TI++) {
-//		TUNGraph::TNodeI NI = G->GetNI(*TI);
-//		for (int i = 0; i < NI.GetInDeg(); i++) {
-//			if (S_prime_sub_S.IsIn(NI.GetNbrNId(i))) {
-//				nb_1++;
-//			}
-//		}
-//	}
-//
-//	for (TIntV::TIter TI = S_prime_sub_S.BegI(); TI < S_prime_sub_S.EndI(); TI++) {
-//		TUNGraph::TNodeI NI = G->GetNI(*TI);
-//		for (int i = 0; i < NI.GetInDeg(); i++) {
-//			if (S_sub_S_prime.IsIn(NI.GetNbrNId(i))) {
-//				nb_2++;
-//			}
-//		}
-//	}
-//
-//	if (S_ints_S_prime.Len() + min(nb_1, nb_2) >= k) {
-//		return true;
-//	}
-//	
-//	return false;
-//}
-//
+void BkVCC::Merging(int k, TIntVIntV& G_S, TIntVIntV& G_R)
+{
+	TIntV GI1, GI2;
+	//cout << G_S.Len() << endl;
+	TIntVIntV G_S_temp = G_S;
+	for (TIntVIntV::TIter GI = G_S_temp.BegI(); GI < G_S_temp.EndI(); GI++) {
+		/*cout << "GI: ";
+		for (TIntV::TIter TI = GI->BegI(); TI < GI->EndI(); TI++) {
+			cout << *TI << " ";
+		}
+		cout << endl;*/
+		if (IskVCC(*GI, k)) {
+			G_R.Add(*GI);
+			G_S.DelIfIn(*GI);
+		}
+	}
+	TPrVIntV G_Merge_cand = flag4(G_S);
+	//cout << "Len: " << G_Merge_cand.Len() << endl;
+
+	for (TPrVIntV::TIter PI = G_Merge_cand.BegI(); PI < G_Merge_cand.EndI(); PI++) {
+		GI1 = PI->GetVal1();
+		GI2 = PI->GetVal2();
+		//cout << "GI1: ";
+		//for (TIntV::TIter TI = GI1.BegI(); TI < GI1.EndI(); TI++) {
+		//	cout << *TI <<" ";
+		//}
+		//cout << endl;
+		
+		//cout << "GI2: ";
+		//for (TIntV::TIter TI = GI2.BegI(); TI < GI2.EndI(); TI++) {
+		//	cout << *TI << " ";
+		//}
+		//cout << endl;
+		//exist GI1, GI2 satisfied IsMergeValid
+		//PUNGraph G_Union = Merge2Graph(G, GI1, GI2);
+		TIntV G_Union = {};
+		G_Union.AddVMerged(GI1);
+		G_Union.AddVMerged(GI2);
+		//cout << "G_Union: ";
+		//for (TIntV::TIter TI = G_Union.BegI(); TI < G_Union.EndI(); TI++) {
+		//	cout << *TI << " ";
+		//}
+		//cout << endl;
+		if (IskVCC(G_Union, k)) {
+			G_R.Add(G_Union);
+			G_S.DelIfIn(GI1);
+			G_S.DelIfIn(GI2);
+		}
+		else {
+			G_S.Add(G_Union);
+			G_S.DelIfIn(GI1);
+			G_S.DelIfIn(GI2);
+		}
+
+	}
+	
+	return;
+}
+
+//为什么这里同样的代码能出现不一样的结果？laugh_cry..
+TPrVIntV BkVCC::flag4(TIntVIntV G_S)
+{
+	TPrVIntV G_Merge_cand = {};
+	for (TIntVIntV::TIter GI1 = G_S.BegI(); GI1 < G_S.EndI(); GI1++) {
+		for (TIntVIntV::TIter GI2 = GI1; GI2 < G_S.EndI(); GI2++) {
+			if (*GI2 == *GI1) continue;
+			if (IsMergeValid(*GI1, *GI2)) {
+				//G1 = *GI1;
+				//G2 = *GI2;
+				G_Merge_cand.AddMerged(TPair<TIntV, TIntV>(*GI1, *GI2));
+				//return true;
+			}
+		}
+	}
+	//return false;
+	return G_Merge_cand;
+}
+
+bool BkVCC::IskVCC(TIntV G_S, int k)
+{
+	//Corollary 1
+	int u;
+	TIntV delta_S, delta_S_bar;
+	if (!flag3(G_S, u, delta_S, delta_S_bar) && min(delta_S.Len(), delta_S_bar.Len()) < k) {
+		return true;
+	}
+	return false;
+}
+
+bool BkVCC::IsMergeValid(TIntV G_S, TIntV G_S_prime)
+{
+	//Theorem 7
+	TIntV S_Nodes, S_prime_Nodes, S_ints_S_prime, S_sub_S_prime, S_prime_sub_S;
+	int nb_1 = 0, nb_2 = 0;
+	S_Nodes = G_S;
+	S_prime_Nodes = G_S_prime;
+	//S_ints_S_prime.Clr();
+	//S_sub_S_prime.Clr();
+	//S_prime_sub_S.Clr();
+	//G_S->GetNIdV(S_Nodes);
+	//G_S_prime->GetNIdV(S_prime_Nodes);
+	for (TIntV::TIter TI = S_Nodes.BegI(); TI < S_Nodes.EndI(); TI++) {
+		if (S_prime_Nodes.IsIn(*TI)) {
+			S_ints_S_prime.Add(*TI);
+		}
+	}
+
+	for (TIntV::TIter TI = S_Nodes.BegI(); TI < S_Nodes.EndI(); TI++) {
+		if (!S_ints_S_prime.IsIn(*TI)) {
+			S_sub_S_prime.Add(*TI);
+		}
+	}
+	for (TIntV::TIter TI = S_prime_Nodes.BegI(); TI < S_prime_Nodes.EndI(); TI++) {
+		if (!S_ints_S_prime.IsIn(*TI)) {
+			S_prime_sub_S.Add(*TI);
+		}
+	}
+
+	for (TIntV::TIter TI = S_sub_S_prime.BegI(); TI < S_sub_S_prime.EndI(); TI++) {
+		TUNGraph::TNodeI NI = G->GetNI(*TI);
+		for (int i = 0; i < NI.GetInDeg(); i++) {
+			if (S_prime_sub_S.IsIn(NI.GetNbrNId(i))) {
+				nb_1++;
+			}
+		}
+	}
+
+	for (TIntV::TIter TI = S_prime_sub_S.BegI(); TI < S_prime_sub_S.EndI(); TI++) {
+		TUNGraph::TNodeI NI = G->GetNI(*TI);
+		for (int i = 0; i < NI.GetInDeg(); i++) {
+			if (S_sub_S_prime.IsIn(NI.GetNbrNId(i))) {
+				nb_2++;
+			}
+		}
+	}
+
+	if (S_ints_S_prime.Len() + min(nb_1, nb_2) >= k) {
+		return true;
+	}
+	
+	return false;
+}
+
 //PUNGraph BkVCC::Merge2Graph(PUNGraph G, PUNGraph GI1, PUNGraph GI2)
 //{
 //	//input: G[S], G[S']
@@ -462,11 +501,4 @@ bool BkVCC::flag3(TIntV G_S, int& u, TIntV& delta_S, TIntV& delta_S_bar)
 //	TIntV S_sub_S_prime, S_prime_sub_S;
 //	return TSnap::GetSubGraph(G, Nodes1);
 //}
-//
-//
-//
-//
-//
-//
-//
-//
+

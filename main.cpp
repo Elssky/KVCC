@@ -35,11 +35,13 @@ int main() {
 	//}
 	//TVec<TIntV> res = subsets(nums, 5, 1000);
 	//cout << res.Len();
-	TStr dataset = "BkFig";
+	TStr dataset = "DBLP";//BkFig
 	PUNGraph G = TSnap::LoadEdgeList<PUNGraph>("./dataset/"+ dataset +".txt", 0, 1);
-	
+	string dataset_name = dataset.CStr();
+	string filename = "./output/"+ dataset_name + ".txt";
+	FILE* outFile = fopen(filename.c_str(), "w");
 	printf("G: \nnode_nums = %d, edge_nums = %d\n", G->GetNodes(), G->GetEdges());
-	BkVCC BkVCC(G, 3);
+	BkVCC BkVCC(G, 5);
 	BkVCC.dataset = dataset;
 	TIntVIntV VCC1 = BkVCC.BkVCC_ENUM(BkVCC.G, BkVCC.k);
 	int j = 0;
@@ -47,11 +49,13 @@ int main() {
 	
 	for (TIntVIntV::TIter GI = VCC1.BegI(); GI < VCC1.EndI(); GI++) {
 		PUNGraph GI_Graph = TSnap::GetSubGraph(G, *GI);
-		printf("K-VCC(No.%d): node_nums = %d, edge_nums = %d\n", ++j, TSnap::CntNonZNodes(GI_Graph), TSnap::CntUniqUndirEdges(GI_Graph));
+		fprintf(outFile, "K-VCC(No.%d): node_nums = %d, edge_nums = %d\n", ++j, TSnap::CntNonZNodes(GI_Graph), TSnap::CntUniqUndirEdges(GI_Graph));
 		for (TIntV::TIter NI = GI->BegI(); NI < GI->EndI(); NI++) {
-			cout << *NI<<" ";
+			//cout << *NI<<" ";
+			fprintf(outFile, "%d ",*NI);
 		}
-		cout << endl;
+		fprintf(outFile, "\n");
+		//cout << endl;
 
 	}
 
