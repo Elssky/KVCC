@@ -2,7 +2,6 @@
 #include "Heuristic_Algorithm.h"
 #include"Utility.h"
 #include<stdio.h>
-#include <string>
 #include <windows.h>
 #include <psapi.h>
 #pragma comment(lib,"psapi.lib")
@@ -17,6 +16,7 @@ void printNodesNum(PUNGraph G, FILE* outfile) {
 		cout << "Node_ID:" << *TI << endl;
 		fprintf(outfile, "Node_ID: %d\n", *TI);
 	}
+	
 	
 }
 
@@ -38,14 +38,15 @@ int main() {
 	TStr dataset = "DBLP";//BkFig
 	PUNGraph G = TSnap::LoadEdgeList<PUNGraph>("./dataset/"+ dataset +".txt", 0, 1);
 	string dataset_name = dataset.CStr();
-	string filename = "./output/"+ dataset_name + ".txt";
+	string filename = "./output/"+ dataset_name + "_alpha=10000.txt";
 	FILE* outFile = fopen(filename.c_str(), "w");
 	printf("G: \nnode_nums = %d, edge_nums = %d\n", G->GetNodes(), G->GetEdges());
-	BkVCC BkVCC(G, 5);
+	clock_t t1 = clock();
+	BkVCC BkVCC(G, 20);
 	BkVCC.dataset = dataset;
-	TIntVIntV VCC1 = BkVCC.BkVCC_ENUM(BkVCC.G, BkVCC.k);
+	TIntVIntV VCC1 = BkVCC.BkVCC_ENUM(BkVCC.G, BkVCC.k, 10000);
 	int j = 0;
-
+	fprintf(outFile, "Total Time: %fs\n", (clock() - t1) * 1.0 / CLOCKS_PER_SEC);
 	
 	for (TIntVIntV::TIter GI = VCC1.BegI(); GI < VCC1.EndI(); GI++) {
 		PUNGraph GI_Graph = TSnap::GetSubGraph(G, *GI);
@@ -59,48 +60,50 @@ int main() {
 
 	}
 
-	//int K_Arr[] = {34};
-	//string filename = "CA-AstroPh_out1.txt";
-	//FILE* outFile = fopen(filename.c_str(), "a");
+	int K_Arr[] = {20};
+	j = 0;
+	for (int i = 0; i < sizeof(K_Arr) / sizeof(int); i += 1) {
+		int k = K_Arr[i];
+		clock_t t1 = clock();
+		fprintf(outFile, "## dataset: %s k = %d\n", dataset_name, k);
+		printf("k = %d\n", k);
+		printf("VCCE*:\n");
+		fprintf(outFile, "VCCE*:\n");
+		VCCE_S VCCE_S(G, k, 1);
+		TUNGraV VCC1 = VCCE_S.KVCC_ENUM(VCCE_S.G, VCCE_S.k);
+		if (VCC1.Len() == 0) break;
+		fprintf(outFile, "VCC_Num:%d\n"
+			"time for LOC_CUT(flow>=k): %fs\n"
+			"Call for LOC_CUT(flow>=k): %d\n"
+			"time for LOC_CUT(flow<k): %fs\n"
+			"Call for LOC_CUT(flow<k): %d\n"
+			"time for LOC_CUT(fake): %fs\n"
+			"Call for LOC_CUT(fake): %d\n"
+			"Total Time: %fs\n", VCC1.Len(), VCCE_S._time2, VCCE_S.m2, VCCE_S._time3, VCCE_S.m3, VCCE_S._time4, VCCE_S.m4, (clock() - t1) * 1.0 / CLOCKS_PER_SEC);
 
-	//for (int i = 0; i < sizeof(K_Arr) / sizeof(int); i += 1) {
-	//	int k = K_Arr[i];
-	//	clock_t t1 = clock();
-	//	fprintf(outFile, "## dataset: CA-AstroPh k = %d\n", k);
-	//	printf("k = %d\n", k);
-	//	printf("VCCE*:\n");
-	//	fprintf(outFile, "VCCE*:\n");
-	//	VCCE_S VCCE_S(G, k, 1);	
-	//	TUNGraV VCC1 = VCCE_S.KVCC_ENUM(VCCE_S.G, VCCE_S.k);
-	//	if (VCC1.Len() == 0) break;
-	//	fprintf(outFile, "VCC_Num:%d\n"
-	//		"time for LOC_CUT(flow>=k): %fs\n"
-	//		"Call for LOC_CUT(flow>=k): %d\n"
-	//		"time for LOC_CUT(flow<k): %fs\n"
-	//		"Call for LOC_CUT(flow<k): %d\n"
-	//		"time for LOC_CUT(fake): %fs\n"
-	//		"Call for LOC_CUT(fake): %d\n"
-	//		"Total Time: %fs\n", VCC1.Len(), VCCE_S._time2, VCCE_S.m2, VCCE_S._time3, VCCE_S.m3, VCCE_S._time4, VCCE_S.m4, (clock() - t1) * 1.0 / CLOCKS_PER_SEC);
+		printf("VCC_Num:%d\n"
+			"time for LOC_CUT(flow>=k): %fs\n"
+			"Call for LOC_CUT(flow>=k): %d\n"
+			"time for LOC_CUT(flow<k): %fs\n"
+			"Call for LOC_CUT(flow<k): %d\n"
+			"time for LOC_CUT(fake): %fs\n"
+			"Call for LOC_CUT(fake): %d\n"
+			"Total Time: %fs\n", VCC1.Len(), VCCE_S._time2, VCCE_S.m2, VCCE_S._time3, VCCE_S.m3, VCCE_S._time4, VCCE_S.m4, (clock() - t1) * 1.0 / CLOCKS_PER_SEC);
 
-	//	printf("VCC_Num:%d\n"
-	//		"time for LOC_CUT(flow>=k): %fs\n"
-	//		"Call for LOC_CUT(flow>=k): %d\n"
-	//		"time for LOC_CUT(flow<k): %fs\n"
-	//		"Call for LOC_CUT(flow<k): %d\n"
-	//		"time for LOC_CUT(fake): %fs\n"
-	//		"Call for LOC_CUT(fake): %d\n"
-	//		"Total Time: %fs\n", VCC1.Len(), VCCE_S._time2, VCCE_S.m2, VCCE_S._time3, VCCE_S.m3, VCCE_S._time4, VCCE_S.m4, (clock() - t1) * 1.0 / CLOCKS_PER_SEC);
+		VCC1.Sort();
+		for (TUNGraV::TIter GI = VCC1.BegI(); GI < VCC1.EndI(); GI++) {
 
-	//	//for (TUNGraV::TIter GI = VCC1.BegI(); GI < VCC1.EndI(); GI++) {
+			/*printf("K-VCC(No.%d): node_nums = %d, edge_nums = %d\n", ++j, TSnap::CntNonZNodes(*GI), TSnap::CntUniqUndirEdges(*GI));
 
-	//	//	/*printf("K-VCC(No.%d): node_nums = %d, edge_nums = %d\n", ++j, TSnap::CntNonZNodes(*GI), TSnap::CntUniqUndirEdges(*GI));
+			cout << endl;*/
+			fprintf(outFile, "K-VCC(No.%d): node_nums = %d, edge_nums = %d\n", ++j, TSnap::CntNonZNodes(*GI), TSnap::CntUniqUndirEdges(*GI));
+			//printNodesNum(*GI, outFile);
+			fprintf(outFile, "\n");
 
-	//	//	cout << endl;*/			
-	//	//	fprintf(outFile, "K-VCC(No.%d): node_nums = %d, edge_nums = %d\n", ++j, TSnap::CntNonZNodes(*GI), TSnap::CntUniqUndirEdges(*GI));
-	//	//	//printNodesNum(*GI, outFile);
-	//	//	fprintf(outFile, "\n");
-	//	//	
-	//	//}
+		}
+	}
+	fclose(outFile);
+		
 
 
 	//	fprintf(outFile, "VCCE:\n");
