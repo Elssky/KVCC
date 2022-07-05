@@ -2,7 +2,6 @@
 #include<Snap.h>
 #include <fstream>
 #include <iostream>
-#include <string>
 
 typedef TVec<TInt> TIntV;
 typedef TVec<PUNGraph> TUNGraV;
