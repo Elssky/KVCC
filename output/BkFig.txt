@@ -1,0 +1,4 @@
+K-VCC(No.1): node_nums = 4, edge_nums = 6
+13 14 15 16 
+K-VCC(No.2): node_nums = 13, edge_nums = 28
+1 2 3 4 5 6 7 8 9 10 11 12 13 

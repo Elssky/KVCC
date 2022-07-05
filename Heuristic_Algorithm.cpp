@@ -170,6 +170,10 @@ void BkVCC::Adding2Subset(PUNGraph P_prime, PUNGraph G_R, TIntV &R)
 
 TIntVIntV BkVCC::Seeding(PUNGraph G, int k, int alpha)
 {
+	char* k_str = new char[5];
+	char* alpha_str = new char[10];
+	itoa(k, k_str, 10);
+	itoa(alpha, alpha_str, 10);
 	TIntVIntV G_S;
 	TIntV G_C;
 	TIntH CandMaintain, deg;
@@ -177,7 +181,7 @@ TIntVIntV BkVCC::Seeding(PUNGraph G, int k, int alpha)
 
 	try
 	{
-		TFIn inFile("./seedgraph/" + dataset + ".seed");
+		TFIn inFile("./seedgraph/" + dataset + "_k=" + TStr(k_str) + "_alpha=" + TStr(alpha_str) + ".seed");
 		G_S.Load(inFile);
 	}
 	catch (TPt<TExcept>)
@@ -216,7 +220,7 @@ TIntVIntV BkVCC::Seeding(PUNGraph G, int k, int alpha)
 		}
 	}
 
-	TFOut outFile("./seedgraph/" + dataset + ".seed");
+	TFOut outFile("./seedgraph/" + dataset + "_k=" + TStr(k_str) + "_alpha=" + TStr(alpha_str) + ".seed");
 	G_S.Save(outFile);
 	return G_S;
 }
