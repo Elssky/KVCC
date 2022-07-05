@@ -11,7 +11,7 @@ BkVCC::BkVCC(PUNGraph G_, int k_)
 	k = k_;
 }
 
-TIntVIntV BkVCC::BkVCC_ENUM(PUNGraph &G, int k)
+TIntVIntV BkVCC::BkVCC_ENUM(PUNGraph &G, int k, int alpha)
 {
 	TIntVIntV G_R, G_S, G_S_prime; 
 
@@ -19,7 +19,7 @@ TIntVIntV BkVCC::BkVCC_ENUM(PUNGraph &G, int k)
 	G = TSnap::GetKCore(G, k);
 	printf("G[%d-core]: \nnode_nums = %d, edge_nums = %d\n", k, G->GetNodes(), G->GetEdges());
 	//Seeding
-	G_S = Seeding(G, k);
+	G_S = Seeding(G, k, alpha);
 
 	do {
 		G_S_prime = G_S;
@@ -168,13 +168,12 @@ void BkVCC::Adding2Subset(PUNGraph P_prime, PUNGraph G_R, TIntV &R)
 	}
 }
 
-TIntVIntV BkVCC::Seeding(PUNGraph G, int k)
+TIntVIntV BkVCC::Seeding(PUNGraph G, int k, int alpha)
 {
 	TIntVIntV G_S;
 	TIntV G_C;
 	TIntH CandMaintain, deg;
 	int i = 0;
-	int alpha = 1000;
 
 	try
 	{

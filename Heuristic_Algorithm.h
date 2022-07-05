@@ -14,14 +14,14 @@ public:
 	int k;
 	BkVCC();
 	BkVCC(PUNGraph G_, int k_);
-	TIntVIntV BkVCC_ENUM(PUNGraph &G, int k);
+	TIntVIntV BkVCC_ENUM(PUNGraph& G, int k, int alpha = 1000);
 	TStr dataset;
 protected:
 	TIntV LkVCS(PUNGraph G, int k, int u, int alpha);
 	bool flag1(PUNGraph G_R);
 	bool flag2(PUNGraph P_prime, PUNGraph G_R);
 	void Adding2Subset(PUNGraph P_prime, PUNGraph G_R, TIntV& R);
-	TIntVIntV Seeding(PUNGraph G, int k);
+	TIntVIntV Seeding(PUNGraph G, int k, int alpha);
 	void Expanding(int k, TIntVIntV& G_S);
 	TIntV GetBoundary(TIntV G_S, TIntV &delta_S_bar);	
 	bool flag3(TIntV G_S, int& u, TIntV& delta_S, TIntV& delta_S_bar);
