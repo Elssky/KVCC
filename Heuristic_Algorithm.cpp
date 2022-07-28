@@ -19,8 +19,19 @@ TIntVIntV BkVCC::BkVCC_ENUM(PUNGraph &G, int k, int alpha)
 	G = TSnap::GetKCore(G, k);
 	printf("G[%d-core]: \nnode_nums = %d, edge_nums = %d\n", k, G->GetNodes(), G->GetEdges());
 	//Seeding
+	clock_t t1 = clock();
+	int j = 0;
 	G_S = Seeding(G, k, alpha);
-
+	for (TIntVIntV::TIter GI = G_S.BegI(); GI < G_S.EndI(); GI++) {
+		PUNGraph GI_Graph = TSnap::GetSubGraph(G, *GI);
+		printf("K-VCC(No.%d): node_nums = %d, edge_nums = %d\n", ++j, TSnap::CntNonZNodes(GI_Graph), TSnap::CntUniqUndirEdges(GI_Graph));
+		for (TIntV::TIter NI = GI->BegI(); NI < GI->EndI(); NI++) {
+			//cout << *NI<<" ";
+			printf("%d ", *NI);
+		}
+		printf("\n");
+	}
+	_time += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
 	do {
 		G_S_prime = G_S;
 		//expanding G_S
@@ -51,9 +62,9 @@ TIntV BkVCC::LkVCS(PUNGraph G, int k, int u, int alpha)
 	//printf("P: \nnode_nums = %d, edge_nums = %d\n", P->GetNodes(), P->GetEdges());
 	
 	PUNGraph P_prime = TSnap::GetKCore(P, k);
-	//for (TUNGraph::TNodeI NI1 = P_prime->BegNI(); NI1 < P_prime->EndNI(); NI1++) {
-	//	cout << NI1.GetId() << " ";
-	//}
+	/*for (TUNGraph::TNodeI NI1 = P_prime->BegNI(); NI1 < P_prime->EndNI(); NI1++) {
+		cout << NI1.GetId() << " ";
+	}*/
 	//cout << endl;
 	//printf("P_prime: \nnode_nums = %d, edge_nums = %d\n", P_prime->GetNodes(), P_prime->GetEdges());
 	int e; //take place
@@ -62,25 +73,52 @@ TIntV BkVCC::LkVCS(PUNGraph G, int k, int u, int alpha)
 	}
 
 	
+		
 	TIntV nb_set;
 	TUNGraph::TNodeI u_Node = P_prime->GetNI(u);
 	for (int i = 0; i < u_Node.GetInDeg(); ++i) {
 		nb_set.Add(u_Node.GetInNId(i));
 	}
-	nb_set.Add(u);
 
 	TIntVIntV res = subsets(nb_set, k, alpha);
 
+	/*if (u == 26 || u == 36 || u == 40 || u == 46 || u == 48 || u == 57) {
+		cout << "u = " << u << ":" << endl;
+		cout << "P_Prime:";
+		for (TUNGraph::TNodeI NI1 = P_prime->BegNI(); NI1 < P_prime->EndNI(); NI1++) {
+			cout << NI1.GetId() << " ";
+		}
+		cout << endl;
+		cout << "nb_set:";
+		for (TIntV::TIter TI = nb_set.BegI(); TI < nb_set.EndI(); TI++) {
+			cout << *TI << " ";
+		}
+		cout << endl;
+		cout << "res.len:" << res.Len() << endl;
+		for (int i = 0; i < res.Len() && i <= alpha; i++) {
+			for (TIntV::TIter TI = res[i].BegI(); TI < res[i].EndI(); TI++) {
+				cout << *TI << " ";
+			}
+			cout << endl;
+		}
+	}*/
+	
+	//nb_set.Add(u);
+
+	
+	//nb_set.Gen(k);
 	for (int i = 0; i < res.Len() && i <= alpha; i++) {
 
 		TIntV R = res[i];
 		R.AddUnique(u); // R = R Union u
 		R.Merge();
+	/*	if (u == 26 || u == 36 || u == 40 || u == 46 || u == 48 || u == 57) {
+			for (TIntV::TIter TI = R.BegI(); TI < R.EndI(); TI++) {
+				cout << *TI << " ";
+			}
+			cout << endl;
+		}*/
 		
-		/*for (TIntV::TIter TI = R.BegI(); TI < R.EndI(); TI++) {
-			cout << *TI << " ";
-		}
-		cout << endl;*/
 		bool direct = true;
 		while (direct) {
 
@@ -231,6 +269,7 @@ TIntVIntV BkVCC::Seeding(PUNGraph G, int k, int alpha)
 
 void BkVCC::Expanding(int k, TIntVIntV& G_S)
 {
+	clock_t t2 = clock();
 	int u;
 	TIntV delta_S, delta_S_bar;
 	for (TIntVIntV::TIter GI = G_S.BegI(); GI < G_S.EndI(); GI++) {
@@ -238,7 +277,7 @@ void BkVCC::Expanding(int k, TIntVIntV& G_S)
 		//	cout << *NI << " ";
 		//}
 		//cout << endl;
-		while (flag3(*GI, u, delta_S, delta_S_bar)) { //exist u belong delta_S, intersection > k
+		while (flag3(*GI, u, delta_S, delta_S_bar)) { //exist u belong delta_S_bar, intersection > k
 			
 			/*Update(G, *GI, u);*/
 			GI->AddUnique(u);
@@ -247,6 +286,7 @@ void BkVCC::Expanding(int k, TIntVIntV& G_S)
 		GI->Merge();
 	}
 	G_S.Merge();
+	_time2 += (double)(clock() - t2) * 1.0 / (double)CLOCKS_PER_SEC;
 	return;
 }
 
@@ -339,19 +379,13 @@ bool BkVCC::flag3(TIntV G_S, int& u, TIntV& delta_S, TIntV& delta_S_bar)
 	return false;
 }
 
-//void BkVCC::Update(PUNGraph G, TIntV& GI, int u)
-//{
-//	TIntV Nodes;
-//	GI->GetNIdV(Nodes);
-//	Nodes.Add(u);
-//	GI = TSnap::GetSubGraph(G, Nodes);
-//	GI.Add(u);
-//}
+
 
 
 
 void BkVCC::Merging(int k, TIntVIntV& G_S, TIntVIntV& G_R)
 {
+	clock_t t3 = clock();
 	TIntV GI1, GI2;
 	//cout << G_S.Len() << endl;
 	TIntVIntV G_S_temp = G_S;
@@ -377,7 +411,7 @@ void BkVCC::Merging(int k, TIntVIntV& G_S, TIntVIntV& G_R)
 		//	cout << *TI <<" ";
 		//}
 		//cout << endl;
-		
+		//
 		//cout << "GI2: ";
 		//for (TIntV::TIter TI = GI2.BegI(); TI < GI2.EndI(); TI++) {
 		//	cout << *TI << " ";
@@ -405,6 +439,7 @@ void BkVCC::Merging(int k, TIntVIntV& G_S, TIntVIntV& G_R)
 		}
 
 	}
+	_time3 += (double)(clock() - t3) * 1.0 / (double)CLOCKS_PER_SEC;
 	
 	return;
 }
@@ -443,7 +478,7 @@ bool BkVCC::IsMergeValid(TIntV G_S, TIntV G_S_prime)
 {
 	//Theorem 7
 	TIntV S_Nodes, S_prime_Nodes, S_ints_S_prime, S_sub_S_prime, S_prime_sub_S;
-	int nb_1 = 0, nb_2 = 0;
+	TIntV nb_1 = {}, nb_2 = {};
 	S_Nodes = G_S;
 	S_prime_Nodes = G_S_prime;
 	//S_ints_S_prime.Clr();
@@ -472,7 +507,8 @@ bool BkVCC::IsMergeValid(TIntV G_S, TIntV G_S_prime)
 		TUNGraph::TNodeI NI = G->GetNI(*TI);
 		for (int i = 0; i < NI.GetInDeg(); i++) {
 			if (S_prime_sub_S.IsIn(NI.GetNbrNId(i))) {
-				nb_1++;
+				nb_1.AddUnique(NI.GetNbrNId(i));
+
 			}
 		}
 	}
@@ -481,12 +517,24 @@ bool BkVCC::IsMergeValid(TIntV G_S, TIntV G_S_prime)
 		TUNGraph::TNodeI NI = G->GetNI(*TI);
 		for (int i = 0; i < NI.GetInDeg(); i++) {
 			if (S_sub_S_prime.IsIn(NI.GetNbrNId(i))) {
-				nb_2++;
+				nb_2.AddUnique(NI.GetNbrNId(i));
 			}
 		}
 	}
+	cout << "G_S: ";
+	for (TIntV::TIter TI = G_S.BegI(); TI < G_S.EndI(); TI++) {
+		cout << *TI << " ";
+	}
+	cout << endl;
 
-	if (S_ints_S_prime.Len() + min(nb_1, nb_2) >= k) {
+	cout << "G_S_prime: ";
+	for (TIntV::TIter TI = G_S_prime.BegI(); TI < G_S_prime.EndI(); TI++) {
+		cout << *TI << " ";
+	}
+	cout << endl;
+	cout << "S_ints_S_prime.Len():" << S_ints_S_prime.Len() << endl;
+	cout << "min(nb_1, nb_2):" << min(nb_1.Len(), nb_2.Len()) << endl;
+	if (S_ints_S_prime.Len() + min(nb_1.Len(), nb_2.Len()) >= k) {
 		return true;
 	}
 	

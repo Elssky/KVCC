@@ -3,6 +3,7 @@
 #include<iostream>
 #include<string>
 #include<sstream>  
+#include <set>
 using namespace std;
 //Preprocessing function
 
@@ -143,7 +144,59 @@ TVec<TIntV> res;
 TIntV track;
 void backtrack(TIntV nums, int start, int k, int alpha);
 
+TVec<TIntV> randsample(TIntV nums, int k, int alpha)
+{
+	int n = nums.Len();
+	int m = k;
+
+	//计算理论的子集个数
+	int conb[100][50];
+	//(n<100,m<25)
+
+	int i, j;
+	for (i = 0; i < n + 1; i++)
+	{
+		for (j = 0; j <= i; j++) {
+			if (i == j || j == 0)
+				conb[i][j] = 1;
+			else conb[i][j] = conb[i - 1][j] + conb[i - 1][j - 1];
+		}
+	}
+
+	
+	//随机生成子集
+	while (res.Len() < min(alpha, 0.8 * conb[n][m])) {
+		track.Clr();
+
+		while (track.Len() < k) {
+			int t = rand() % (n + 1);
+			track.AddUnique(nums[t]);
+		}
+		for (int i = 0; i < n; ++i) {
+			if (rand() % (n - i) < m) {
+				cout << i << endl;
+				m--;
+			}
+		}
+		/*for (int i = n - m; i < n; ++i)
+		{
+			int t = rand() % (i + 1);
+			if (track.IsIn(nums[t])) {
+				track.Add(nums[t]);
+			}
+			else {
+				track.Add(nums[i]);
+			}
+		}*/
+		res.AddUnique(track);
+	}
+	return res;
+}
+
+
 TVec<TIntV> subsets(TIntV nums, int k, int alpha) {
+	res.Clr();
+	track.Clr();
 	backtrack(nums, 0, k, alpha);
 	return res;
 }
@@ -152,8 +205,9 @@ void backtrack(TIntV nums, int start, int k, int alpha) {
 	if (res.Len() >= alpha) {
 		return;
 	}
+
 	if (track.Len() == k) {
-		res.Add(track);
+		res.Add(TIntV (track));
 		return;
 	}
 	
