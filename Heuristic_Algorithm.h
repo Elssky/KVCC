@@ -1,5 +1,6 @@
 #pragma once
-#include<Snap.h>
+#include <Snap.h>
+#include <cliques.h>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -40,5 +41,7 @@ protected:
 	bool IskVCC(TIntV G_S, int k);
 	bool IsMergeValid(TIntV G_S, TIntV G_S_prime);
 	/*PUNGraph Merge2Graph(PUNGraph G, PUNGraph GI1, PUNGraph GI2);*/
+
+	TIntV flag3(TIntV G_S, TIntV& delta_S, TIntV& delta_S_bar);
 };
 
