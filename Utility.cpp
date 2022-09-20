@@ -4,8 +4,21 @@
 #include<string>
 #include<sstream>  
 #include <set>
+#include <random>
 using namespace std;
 //Preprocessing function
+
+int k;
+string alg, seed, useFlow;
+TStr dataset;
+
+void usage() {
+	printf("Usage:\n");
+	printf("\tOptDemo [-a BkVCC/VCCE] [-d DBLP] [-k 10] [-s rand/clique/k+1-clique] [-f yes](use maxflow OR not)\n");
+	printf("e.g. KVCC.exe -a BkVCC -d DBLP -k 10 -s rand -f yes");
+}
+
+
 
 int get_vertex_id(int u, int& num, int* vertex_map_) {
 	if (vertex_map_[u] < 0) {
@@ -140,56 +153,93 @@ void format_graph(string src)
 
 //Others
 
+
+
 TVec<TIntV> res;
 TIntV track;
+//int conb[51][51] = {};
+
 void backtrack(TIntV nums, int start, int k, int alpha);
 
-TVec<TIntV> randsample(TIntV nums, int k, int alpha)
+
+/* 返回数组中 k 个随机节点的值 */
+TIntV getRandom(TIntV nums) {
+	TIntV tmp;
+	//int *tmp = new int[k];
+	cout << nums.Len() << endl;
+	TIntV::TIter p = nums.BegI();
+
+	// 前 k 个元素先默认选上
+	for (int i = 0; i < k && p != nums.EndI(); i++) {
+		tmp.Add(*p);
+		p++;
+	}
+
+	int i = k;
+	// while 循环遍历链表
+
+	while (p != nums.EndI()) {
+		i++;
+		// 生成一个 [0, i) 之间的整数
+		int j = rand() % i;
+		//cout << j << endl;
+		// 这个整数等于 0 的概率就是 1/i
+		if (j < k) {
+			tmp[j] = *p;
+		}
+		p++;
+
+	}
+	//track.AddUnique(val);
+
+	tmp.Sort();
+	return tmp;
+}
+
+
+int Count(int n, int m)
 {
+	if (n == m || m == 0) return 1;
+
+	vector<int> dp(m + 1);
+	for (int i = 0; i <= n; i++)
+		for (int j = min(i, m); j >= 0; j--)
+			if (i == j || j == 0) dp[j] = 1;
+			else dp[j] = dp[j] + dp[j - 1];
+
+	return dp[m];
+}
+
+TVec<TIntV> randSample(TIntV nums, int k, int alpha)
+{
+	res.Clr();
+	//cout << res.Len()<<" "<<alpha << endl;
 	int n = nums.Len();
 	int m = k;
-
-	//计算理论的子集个数
-	int conb[100][50];
-	//(n<100,m<25)
-
-	int i, j;
-	for (i = 0; i < n + 1; i++)
-	{
-		for (j = 0; j <= i; j++) {
-			if (i == j || j == 0)
-				conb[i][j] = 1;
-			else conb[i][j] = conb[i - 1][j] + conb[i - 1][j - 1];
-		}
-	}
+	//int flag = 0;//标记组合数是否足够大，0则调用子集，1则调用随机生成
 
 	
+	
+	
+
+	if (Count(n, m) < 5*alpha) return subsets(nums, k, alpha);
+	
+	
 	//随机生成子集
-	while (res.Len() < min(alpha, 0.8 * conb[n][m])) {
+	while (res.Len() < alpha) {
 		track.Clr();
 
-		while (track.Len() < k) {
+		/*while (track.Len() < k) {
 			int t = rand() % (n + 1);
 			track.AddUnique(nums[t]);
-		}
-		for (int i = 0; i < n; ++i) {
-			if (rand() % (n - i) < m) {
-				cout << i << endl;
-				m--;
-			}
-		}
-		/*for (int i = n - m; i < n; ++i)
-		{
-			int t = rand() % (i + 1);
-			if (track.IsIn(nums[t])) {
-				track.Add(nums[t]);
-			}
-			else {
-				track.Add(nums[i]);
-			}
 		}*/
-		res.AddUnique(track);
+		track = getRandom(nums);
+		//cout << track.Len() << endl;
+		res.AddUnique(TIntV(track));
+		
+		//cout << res.Len() << endl;
 	}
+	res.Merge();
 	return res;
 }
 
@@ -197,11 +247,25 @@ TVec<TIntV> randsample(TIntV nums, int k, int alpha)
 TVec<TIntV> subsets(TIntV nums, int k, int alpha) {
 	res.Clr();
 	track.Clr();
+	int n = nums.Len();
 	backtrack(nums, 0, k, alpha);
+	/*if(n < 50) backtrack(nums, 0, k, alpha);
+	else {
+		while (res.Len() < alpha) {
+			track.Clr();
+			while (track.Len() < k) {
+				int t = rand() % n;
+				track.Add(nums[t]);
+			}
+			res.Add(track);
+		}
+		res.Merge();
+	}*/
 	return res;
 }
 
 void backtrack(TIntV nums, int start, int k, int alpha) {
+	
 	if (res.Len() >= alpha) {
 		return;
 	}

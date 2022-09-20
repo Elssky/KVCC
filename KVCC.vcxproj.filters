@@ -30,7 +30,16 @@
     <ClInclude Include="Utility.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Snap-6.0\examples\testgraph\stdafx.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Snap-6.0\examples\testgraph\targetver.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Snap-6.0\snap-adv\cliques.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="getopt.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -53,7 +62,13 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Snap-6.0\examples\testgraph\stdafx.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Snap-6.0\snap-adv\cliques.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="gteopt.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

@@ -4,12 +4,16 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include "Utility.h"
 
 typedef TVec<TInt> TIntV;
 typedef TVec<PUNGraph> TUNGraV;
 typedef TPt<TUNGraph> PUNGraph;
 typedef TVec<TIntV> TIntVIntV;
 typedef TVec <TPair<TIntV, TIntV>> TPrVIntV;
+
+
+
 class BkVCC {
 public:
 	double _time = 0;
@@ -40,6 +44,8 @@ protected:
 	TPrVIntV flag4(TIntVIntV G_S);
 	bool IskVCC(TIntV G_S, int k);
 	bool IsMergeValid(TIntV G_S, TIntV G_S_prime);
+	bool IsMergeValid_maxflow(TIntV G_S, TIntV G_S_prime);
+	PNEANet Construct_DG(PUNGraph G);
 	/*PUNGraph Merge2Graph(PUNGraph G, PUNGraph GI1, PUNGraph GI2);*/
 
 	TIntV flag3(TIntV G_S, TIntV& delta_S, TIntV& delta_S_bar);

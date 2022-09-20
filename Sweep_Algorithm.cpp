@@ -4,6 +4,8 @@
 #include <map>
 #include"algorithm"
 #include <iterator>
+#include "Utility.h"
+
 
 
 VCCE_S::VCCE_S(PUNGraph G_, int k_, int Compute_SSV_times_) {
@@ -13,6 +15,7 @@ VCCE_S::VCCE_S(PUNGraph G_, int k_, int Compute_SSV_times_) {
 	Nodes = G->GetNodes();
 	//Nodes = G->GetMxNId() + 1;
 	int Mxnode = G->GetMxNId();
+
 	//vertex_map_ = new int[Mxnode];
 	//memset(vertex_map_, 0, sizeof(int) * Mxnode);
 	//int i = 0;
@@ -21,21 +24,21 @@ VCCE_S::VCCE_S(PUNGraph G_, int k_, int Compute_SSV_times_) {
 	//}
 }
 
-TUNGraV VCCE_S::KVCC_ENUM(PUNGraph G, int k, int flag) {
+TIntVIntV VCCE_S::KVCC_ENUM(PUNGraph &sub_G, int k, int flag) {
 	//func: Find k-VCCs in Graph G
 	//params:
 	//	G: Undirected Graph
 	//	k: an integer
 	//return:
-	//	all k-vertex connected components (Type: TUNGraV )
+	//	all k-vertex connected components (Type: TIntVIntV)
 
 	//step1: initialize set VCC as empty
-	TUNGraV VCC;  // return as K-Vccs;
+	TIntVIntV VCC;  // return as K-Vccs;
 
 	//step2: remove vertices u and incident edges, that d(u) < k
-	PUNGraph G2 = TSnap::GetKCore(G, k);
-
-
+	PUNGraph G2 = TSnap::GetKCore(sub_G, k);
+	//printf("G: \nnode_nums = %d, edge_nums = %d\n", G->GetNodes(), G->GetEdges());
+	//printf("G2: \nnode_nums = %d, edge_nums = %d\n", G2->GetNodes(), G2->GetEdges());
 	//for (TIntV::TIter NI = G->SSV.BegI(); NI < G->SSV.EndI(); NI++) {	//G2->SSV = G->SSV(node in G2)
 	//	if (G2->IsNode(*NI)) G2->SSV.Add(*NI);
 	//}
@@ -49,24 +52,23 @@ TUNGraV VCCE_S::KVCC_ENUM(PUNGraph G, int k, int flag) {
 	//step3: identify connected compotent set in G
 	TCnComV ConV;
 	TSnap::GetSccs(G2, ConV);
-	TVec<PUNGraph> G_set; // Connected Component in G2;
+	TIntVIntV G_set; // Connected Component in G2;
 	for (TCnComV::TIter I = ConV.BegI(); I < ConV.EndI(); I++) {
-		PUNGraph GI = TSnap::GetSubGraph(G2, I->NIdV);
 		//GI->SSV = G2->SSV;
 		//for (TIntV::TIter NI = G2->SSV.BegI(); NI < G2->SSV.EndI(); NI++) { //or GI->SSV = G2->SSV;
 		//	if (GI->IsNode(*NI)) GI->SSV.Add(*NI);
 		//}
-		G_set.Add(GI);
+		G_set.Add(I->NIdV);
 	}
 	//printf("G_set_len: %d\n", G_set.Len());
 	
 	//step4: find vertex cut in G
 	TIntV S; //Vertex_Cut
 
-	for (TUNGraV::TIter GI = G_set.BegI(); GI < G_set.EndI(); GI++) {
+	for (TIntVIntV::TIter GI = G_set.BegI(); GI < G_set.EndI(); GI++) {
 		//clock_t t1 = clock();
 
-		S = Global_Cut(*GI, k, flag);
+		S = Global_Cut(*GI, k, flag, G2);
 		//m++;
 		//_time += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
 		//printf("SSV_len: %d\n", (*GI)->SSV.Len());
@@ -76,11 +78,12 @@ TUNGraV VCCE_S::KVCC_ENUM(PUNGraph G, int k, int flag) {
 			VCC.Add(*GI);
 		}
 		else {
-			TUNGraV G_i = Overlap_Partition(*GI, S);
+			TIntVIntV G_i = Overlap_Partition(*GI, S, G2);
 			//printf("%d\n", G_i.Len());
-			for (TUNGraV::TIter G_ij = G_i.BegI(); G_ij < G_i.EndI(); G_ij++) {
+			for (TIntVIntV::TIter G_ij = G_i.BegI(); G_ij < G_i.EndI(); G_ij++) {
 				//printf("SSV_len: %d\n", (*G_ij)->SSV.Len());
-				TUNGraV VCC_i = KVCC_ENUM(*G_ij, k, 1);
+				PUNGraph temp_G = TSnap::GetSubGraph(G2, *G_ij);
+				TIntVIntV VCC_i = KVCC_ENUM(temp_G, k, 1);
 				VCC.AddV(VCC_i);
 				//printf("%d\n", VCC_i.Len());
 
@@ -89,10 +92,20 @@ TUNGraV VCCE_S::KVCC_ENUM(PUNGraph G, int k, int flag) {
 
 	}
 
+	char* k_str = new char[5];
+	//char* alg_str = new char[20];
+	//string alg[4] = { "VCCE", "BkVCC", "BkVCC(clique)" ,"BkVCC(k+1 clique)" };
+
+	//strcpy(alg_str, alg[a].c_str());
+	itoa(k, k_str, 10);
+
+	TFOut outFile("./community/" + dataset + "_k=" + TStr(k_str)  + "_algorithm=" + alg.c_str() + "_maxflow=" + useFlow.c_str() + ".kvcc");
+	VCC.Save(outFile);
+
 	return VCC;
 }
 
-TIntV VCCE_S::Global_Cut(PUNGraph &G, int k, int flag)
+TIntV VCCE_S::Global_Cut(TIntV &subG, int k, int flag, PUNGraph All_G)
 {
 	
 	TIntV S;
@@ -101,7 +114,7 @@ TIntV VCCE_S::Global_Cut(PUNGraph &G, int k, int flag)
 	
 	//1. compute sparse certification SC
 
-	PUNGraph SC = Compute_SC(G, k, CS);
+	PUNGraph SC = Compute_SC(subG, k, CS, All_G);
 	TIntH deposit, dist, pru;
 	//SC->SSV = G->SSV;
 	//2. direct graph
@@ -156,7 +169,7 @@ TIntV VCCE_S::Global_Cut(PUNGraph &G, int k, int flag)
 	}
 
 	
-	TSnap::GetShortPath(G, u, dist, FALSE);
+	TSnap::GetShortPath(All_G, u, dist, FALSE);
 	dist.SortByDat(FALSE);
 
 
@@ -166,6 +179,7 @@ TIntV VCCE_S::Global_Cut(PUNGraph &G, int k, int flag)
 	for (TIntH::TIter HI = dist.BegI(); HI < dist.EndI(); HI++) {
 		
 		v = HI.GetKey();
+		
 		if (pru.GetDat(v) == TRUE) {
 			pru_node++;
 			continue;
@@ -241,15 +255,14 @@ TIntV VCCE_S::Global_Cut(PUNGraph &G, int k, int flag)
 	return {};
 }
 
-TUNGraV VCCE_S::Overlap_Partition(PUNGraph G, TIntV Vertex_Cut) {
+TIntVIntV VCCE_S::Overlap_Partition(TIntV subG, TIntV Vertex_Cut, PUNGraph All_G) {
 	//params:
 	//	G: Undirected Graph
 	//	S: Vertex_Cut
 	//return:
-	//	Overlap_Partition Graphs (Type: TUNGraV )
-	PUNGraph G_ = TUNGraph::New();
-	*G_ = *G;
-	TUNGraV G_set;
+	//	Overlap_Partition Graphs (Type: TIntVIntV )
+	PUNGraph G_ = TSnap::GetSubGraph(All_G, subG);
+	TIntVIntV G_set;
 	//printf("Vertex_Cut: %d\n", Vertex_Cut.Len());
 	//printf("G: \n node_nums = %d, edge_nums = %d\n", TSnap::CntNonZNodes(G), TSnap::CntUniqUndirEdges(G));
 	TSnap::DelNodes(G_, Vertex_Cut); // 相应的边会自动删除吗 To test
@@ -262,22 +275,19 @@ TUNGraV VCCE_S::Overlap_Partition(PUNGraph G, TIntV Vertex_Cut) {
 			I->Add(NI->Val);		
 		}
 		//继承strong side vertex
-		PUNGraph GI = TSnap::GetSubGraph(G, I->NIdV);
 		/*Check_SSV(G, GI, Vertex_Cut);*/
-		G_set.Add(GI);
+		G_set.Add(I->NIdV);
 	}
-
 
 
 	return G_set;
 }
 
-PUNGraph VCCE_S::Compute_SC(PUNGraph G, int k, MyTCnComV &CS)
+PUNGraph VCCE_S::Compute_SC(TIntV subG, int k, MyTCnComV &CS, PUNGraph All_G)
 {
 	
 	PUNGraph SC = TUNGraph::New();
-	PUNGraph G_ = TUNGraph::New();
-	*G_ = *G;
+	PUNGraph G_ = TSnap::GetSubGraph(All_G, subG);
 	PNGraph BFSTree;
 	PUNGraph F_k = TUNGraph::New();//Forest k
 	int NodeNums = TSnap::CntNonZNodes(G_);

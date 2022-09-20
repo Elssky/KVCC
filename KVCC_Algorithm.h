@@ -5,6 +5,8 @@ class MyTUNGraph;
 typedef TVec<TInt> TIntV;
 typedef TVec<PUNGraph> TUNGraV;
 typedef TPt<MyTUNGraph> MyPUNGraph;
+typedef TVec<TIntV> TIntVIntV;
+
 
 class MyTUNGraph : TUNGraph {
 	TIntV SSV;
@@ -25,12 +27,13 @@ public:
 	int k;
 	VCCE();
 	VCCE(PUNGraph G_, int k_);
-	TUNGraV KVCC_ENUM(PUNGraph G, int k);
+	TIntVIntV KVCC_ENUM(PUNGraph & sub_G, int k);
 protected:
-	TIntV Global_Cut(PUNGraph G, int k);
-	TUNGraV Overlap_Partition(PUNGraph G, TIntV Vertex_Cut);
+	TIntV Global_Cut(TIntV& subG, int k, PUNGraph All_G);
+	TIntVIntV Overlap_Partition(TIntV subG, TIntV Vertex_Cut, PUNGraph All_G);
 	PNEANet Construct_DG(PUNGraph G);
-	PUNGraph Compute_SC(PUNGraph G, int k);
+	PUNGraph Compute_SC(TIntV subG, int k, PUNGraph All_G);
+	
 	TIntV Loc_Cut(int source, int sink, PNEANet DG, PUNGraph G, int k);
 };
 
