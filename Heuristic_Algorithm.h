@@ -10,6 +10,9 @@ typedef TVec<PUNGraph> TUNGraV;
 typedef TPt<TUNGraph> PUNGraph;
 typedef TVec<TIntV> TIntVIntV;
 typedef TVec <TPair<TIntV, TIntV>> TPrVIntV;
+
+
+
 class BkVCC {
 public:
 	double _time = 0;

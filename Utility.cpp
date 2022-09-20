@@ -7,6 +7,8 @@
 using namespace std;
 //Preprocessing function
 
+int a;//用a来选择运行的算法
+
 int get_vertex_id(int u, int& num, int* vertex_map_) {
 	if (vertex_map_[u] < 0) {
 		vertex_map_[u] = num++;
@@ -142,18 +144,23 @@ void format_graph(string src)
 
 TVec<TIntV> res;
 TIntV track;
+//int conb[51][51] = {};
+
 void backtrack(TIntV nums, int start, int k, int alpha);
 
-TVec<TIntV> randsample(TIntV nums, int k, int alpha)
+TVec<TIntV> randSample(TIntV nums, int k, int alpha)
 {
+	res.Clr();
 	int n = nums.Len();
 	int m = k;
+	int flag = 0;//标记组合数是否足够大，0则调用子集，1则调用随机生成
 
+	if(n < 50 ) return subsets(nums, k, alpha);
+	
 	//计算理论的子集个数
-	int conb[100][50];
-	//(n<100,m<25)
 
-	int i, j;
+
+	/*int i, j;
 	for (i = 0; i < n + 1; i++)
 	{
 		for (j = 0; j <= i; j++) {
@@ -161,23 +168,28 @@ TVec<TIntV> randsample(TIntV nums, int k, int alpha)
 				conb[i][j] = 1;
 			else conb[i][j] = conb[i - 1][j] + conb[i - 1][j - 1];
 		}
+		if (conb[i][j] > alpha) { flag = 1; break; }
 	}
+
+	if (flag == 0) {
+		return subsets(nums, k, alpha);
+	}*/
 
 	
 	//随机生成子集
-	while (res.Len() < min(alpha, 0.8 * conb[n][m])) {
+	while (res.Len() < alpha) {
 		track.Clr();
 
 		while (track.Len() < k) {
 			int t = rand() % (n + 1);
 			track.AddUnique(nums[t]);
 		}
-		for (int i = 0; i < n; ++i) {
-			if (rand() % (n - i) < m) {
-				cout << i << endl;
-				m--;
-			}
-		}
+		//for (int i = 0; i < n; ++i) {
+		//	if (rand() % (n - i) < m) {
+		//		//cout << i << endl;
+		//		m--;
+		//	}
+		//}
 		/*for (int i = n - m; i < n; ++i)
 		{
 			int t = rand() % (i + 1);
@@ -188,8 +200,15 @@ TVec<TIntV> randsample(TIntV nums, int k, int alpha)
 				track.Add(nums[i]);
 			}
 		}*/
-		res.AddUnique(track);
+		/*for (TIntV::TIter TI = track.BegI(); TI < track.EndI(); TI++) {
+			cout << *TI << " ";
+		}
+		cout << endl;*/
+		res.Add(TIntV(track));
+		
+		
 	}
+	res.Merge();
 	return res;
 }
 
@@ -197,11 +216,25 @@ TVec<TIntV> randsample(TIntV nums, int k, int alpha)
 TVec<TIntV> subsets(TIntV nums, int k, int alpha) {
 	res.Clr();
 	track.Clr();
+	int n = nums.Len();
 	backtrack(nums, 0, k, alpha);
+	/*if(n < 50) backtrack(nums, 0, k, alpha);
+	else {
+		while (res.Len() < alpha) {
+			track.Clr();
+			while (track.Len() < k) {
+				int t = rand() % n;
+				track.Add(nums[t]);
+			}
+			res.Add(track);
+		}
+		res.Merge();
+	}*/
 	return res;
 }
 
 void backtrack(TIntV nums, int start, int k, int alpha) {
+	
 	if (res.Len() >= alpha) {
 		return;
 	}

@@ -12,6 +12,7 @@ public:
 	int pru_node = 0;
 	int non_pru_node = 0;
 	int c = 0;
+	TStr dataset;
 protected:
 	void Sweep(PUNGraph G, int v, TIntH& pru, TIntH& deposit, MyTCnComV& CS);
 	PUNGraph Compute_SC(PUNGraph G, int k, MyTCnComV& ConV);
@@ -21,5 +22,5 @@ protected:
 	bool IsSSV(PUNGraph G, int NId);
 	void Check_SSV(PUNGraph& G, PUNGraph& subG, TIntV S);
 	TUNGraV Overlap_Partition(PUNGraph G, TIntV Vertex_Cut);
-	void Get_SSV(PUNGraph &G);
+	//void Get_SSV(PUNGraph &G);
 };

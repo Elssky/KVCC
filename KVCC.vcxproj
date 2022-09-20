@@ -149,6 +149,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Snap-6.0\examples\testgraph\stdafx.h" />
+    <ClInclude Include="..\..\Snap-6.0\examples\testgraph\targetver.h" />
     <ClInclude Include="..\..\Snap-6.0\snap-adv\cliques.h" />
     <ClInclude Include="..\..\Snap-6.0\snap-core\Snap.h" />
     <ClInclude Include="Heuristic_Algorithm.h">
@@ -161,8 +163,11 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Snap-6.0\examples\testgraph\stdafx.cpp" />
     <ClCompile Include="..\..\Snap-6.0\snap-adv\cliques.cpp" />
-    <ClCompile Include="..\..\Snap-6.0\snap-core\Snap.cpp" />
+    <ClCompile Include="..\..\Snap-6.0\snap-core\Snap.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Heuristic_Algorithm.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>

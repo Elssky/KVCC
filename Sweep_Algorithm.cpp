@@ -4,6 +4,8 @@
 #include <map>
 #include"algorithm"
 #include <iterator>
+#include "Utility.h"
+
 
 
 VCCE_S::VCCE_S(PUNGraph G_, int k_, int Compute_SSV_times_) {
@@ -13,6 +15,7 @@ VCCE_S::VCCE_S(PUNGraph G_, int k_, int Compute_SSV_times_) {
 	Nodes = G->GetNodes();
 	//Nodes = G->GetMxNId() + 1;
 	int Mxnode = G->GetMxNId();
+
 	//vertex_map_ = new int[Mxnode];
 	//memset(vertex_map_, 0, sizeof(int) * Mxnode);
 	//int i = 0;
@@ -88,6 +91,16 @@ TUNGraV VCCE_S::KVCC_ENUM(PUNGraph G, int k, int flag) {
 		}
 
 	}
+
+	char* k_str = new char[5];
+	char* alg_str = new char[20];
+	string alg[4] = { "VCCE", "BkVCC", "BkVCC(clique)" ,"BkVCC(k+1 clique)" };
+
+	strcpy(alg_str, alg[a].c_str());
+	itoa(k, k_str, 10);
+
+	TFOut outFile("D:/Git Project/KVCC-ENUM/community/" + dataset + "_k=" + TStr(k_str)  + "_algorithm=" + TStr(alg_str) + ".kvcc");
+	VCC.Save(outFile);
 
 	return VCC;
 }

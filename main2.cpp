@@ -17,8 +17,8 @@ void printNodesNum(PUNGraph G, FILE* outfile) {
 		//cout << "Node_ID:" << *TI << endl;
 		fprintf(outfile, "%d ", *TI);
 	}
-	
-	
+
+
 }
 
 void printNodesNum(TIntV G, FILE* outfile, int j) {
@@ -72,18 +72,18 @@ int main() {
 
 	//omp_set_num_threads(4); //并行
 
-	
-	PUNGraph G = TSnap::LoadEdgeList<PUNGraph>("D:/Git Project/KVCC-ENUM/dataset/"+ dataset +".txt", 0, 1);
-	
+
+	PUNGraph G = TSnap::LoadEdgeList<PUNGraph>("D:/Git Project/KVCC-ENUM/dataset/" + dataset + ".txt", 0, 1);
+
 	//TStr dataset = "network";
 	//PUNGraph G = TSnap::LoadEdgeList<PUNGraph>("./dataset/" + dataset + ".dat", 0, 1);
 	string dataset_name = dataset.CStr();
 
-	
 
-	int K_Arr[] = {25,20,15};
 
-	a = 1;//用a来选择运行的算法 0:VCCE  1:BkVCC  2:BkVCC(clique) 3:BkVCC(k+1 clique)
+	int K_Arr[] = { 25 };
+
+	a = 3;//用a来选择运行的算法 0:VCCE  1:BkVCC  2:BkVCC(clique) 3:BkVCC(k+1 clique)
 
 
 	for (int i = 0; i < sizeof(K_Arr) / sizeof(int); i += 1) {
@@ -94,19 +94,19 @@ int main() {
 		int j = 0;
 		char* k_str = new char[5];
 		char* alpha_str = new char[10];
-		
+
 		itoa(k, k_str, 10);
 		itoa(alpha, alpha_str, 10);
 
-		
+
 		/*string filename = "./output/" + dataset_name + "_k=" + k_str + "_alpha=" + alpha_str + ".txt";*/
-		
-		string alg[4] = { "VCCE", "BkVCC", "BkVCC(clique)", "BkVCC(k+1 clique)"};
+
+		string alg[4] = { "VCCE", "BkVCC", "BkVCC(clique)" ,"BkVCC(k+1 clique)"};
 		string filename = "D:/Git Project/KVCC-ENUM/output/" + dataset_name + "_k=" + k_str + "_" + alg[a] + ".txt";
 		FILE* outFile = fopen(filename.c_str(), "w");
 		printf("G: \nnode_nums = %d, edge_nums = %d\n", G->GetNodes(), G->GetEdges());
 
-		if (a > 0) {
+		if (a == 1 || a == 2) {
 			//BkVCC
 			t0 = clock();
 			BkVCC BkVCC(G, k);
@@ -138,7 +138,7 @@ int main() {
 
 			}
 		}
-		
+
 
 
 
@@ -152,7 +152,7 @@ int main() {
 			fprintf(outFile, "VCCE*:\n");*/
 			VCCE_S VCCE_S(G, k, 1);
 			TUNGraV VCCE_S_res = VCCE_S.KVCC_ENUM(VCCE_S.G, VCCE_S.k);
-			VCCE_S.dataset = dataset;
+
 			/*if (VCCE_S_res.Len() == 0) break;*/
 
 			fprintf(outFile, "VCC_Num:%d\n"
@@ -188,10 +188,10 @@ int main() {
 			}
 			fclose(outFile);
 		}
-		
+
 	}
-	
-		
+
+
 
 
 	//	fprintf(outFile, "VCCE:\n");
