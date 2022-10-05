@@ -6,6 +6,8 @@
 #include <string>
 #include "Utility.h"
 
+using namespace std;
+
 typedef TVec<TInt> TIntV;
 typedef TVec<PUNGraph> TUNGraV;
 typedef TPt<TUNGraph> PUNGraph;
