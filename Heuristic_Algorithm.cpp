@@ -79,7 +79,6 @@ TIntVIntV BkVCC::BkVCC_ENUM(PUNGraph& G, int k, int alpha)
 	cout << "Seeding subgraph num:" << G_S.Len() << endl;
 	_time += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
 
-	do {
 
 		G_S_prime = G_S;
 
@@ -143,6 +142,65 @@ TIntVIntV BkVCC::BkVCC_ENUM(PUNGraph& G, int k, int alpha)
 	//保存结果
 	TFOut outFile("D:/Git Project/KVCC-ENUM/community/" + dataset + "_k=" + TStr(k_str) + "_alpha=" + TStr(alpha_str) + "_algorithm=" + TStr(alg.c_str()) + "_maxflow=" + useFlow.c_str() + ".kvcc");
 	G_R.Save(outFile);
+
+	//	G_S_prime = G_S;
+
+	//	j = 0;
+	//	//merging G_S
+	//	Merging(k, G_S, G_R);
+	//	cout << "after Merging subgraph num:" << G_S.Len() << endl;
+	//	//
+	//	//for (TIntVIntV::TIter GI = G_S.BegI(); GI < G_S.EndI(); GI++) {
+	//	//	PUNGraph GI_Graph = TSnap::GetSubGraph(G, *GI);
+	//	//	printf("merging-subgraph(No.%d): node_nums = %d, edge_nums = %d\n", ++j, TSnap::CntNonZNodes(GI_Graph), TSnap::CntUniqUndirEdges(GI_Graph));
+	//	//	for (TIntV::TIter NI = GI->BegI(); NI < GI->EndI(); NI++) {
+	//	//		//cout << *NI<<" ";
+	//	//		printf("%d ", *NI);
+	//	//	}
+	//	//	printf("\n");
+	//	//}
+	//	//G_R.Merge();
+
+	//	//expanding G_S
+	//	Expanding(k, G_S);
+	//	//cout << "after Expanding subgraph num:" << G_S.Len() << endl;
+	//	//j = 0;
+	//	//for (TIntVIntV::TIter GI = G_S.BegI(); GI < G_S.EndI(); GI++) {
+	//	//	PUNGraph GI_Graph = TSnap::GetSubGraph(G, *GI);
+	//	//	printf("expanding-subgraph(No.%d): node_nums = %d, edge_nums = %d\n", ++j, TSnap::CntNonZNodes(GI_Graph), TSnap::CntUniqUndirEdges(GI_Graph));
+	//	//	for (TIntV::TIter NI = GI->BegI(); NI < GI->EndI(); NI++) {
+	//	//		//cout << *NI<<" ";
+	//	//		printf("%d ", *NI);
+	//	//	}
+	//	//	printf("\n");
+	//	//}
+
+	//	/*G_S.Merge();
+
+	//	G_R.Sort();
+	//	G_S.Sort();
+	//	cout << "G_R num:" << G_R.Len() << endl;
+	//	cout << G_R[G_R.Len() - 1].Len() << endl;
+	//	cout << "G_S num:" << G_S.Len() << endl;
+	//	cout << G_S[G_S.Len() - 1].Len() << endl;*/
+	//} while (G_S != G_S_prime); // TODO: 如何判断是否发生变化，仅靠长度肯定是不行的 FINISH:用顶点数组表示一张图，对比数组即可
+
+
+	//// G_R = G_R Union G_S
+	//// 
+	//// error can not use this function
+	//// 无法比较两个图是否相同，所以sort相关的函数比如AddMergedV(), Merge()都不能使用，除非重载运算符
+
+	////09/04 在图的内部也进行排序操作 比如其中有两个元素[3,5,7,9,22]与[3,9,5,22,7]，
+	////这两个是不会合并的，因为merge判断需要完全相同，所以需要在每个元素内部在进行一次merging操作
+	//G_R.AddVMerged(G_S);
+	//for (TIntVIntV::TIter TI = G_R.BegI(); TI < G_R.EndI(); TI++) {
+	//	TI->Sort();
+	//}
+	//G_R.Merge();
+	////保存结果
+	//TFOut outFile("D:/Git Project/KVCC-ENUM/community/" + dataset + "_k=" + TStr(k_str) + "_alpha=" + TStr(alpha_str) + "_algorithm=" + TStr(alg_str) + ".kvcc");
+	//G_R.Save(outFile);
 
 
 	return G_R;
