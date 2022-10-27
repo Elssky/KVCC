@@ -4,7 +4,7 @@
 #include <map>
 #include"algorithm"
 #include <iterator>
-#include "Utility.h"
+
 
 
 
@@ -99,7 +99,7 @@ TIntVIntV VCCE_S::KVCC_ENUM(PUNGraph &sub_G, int k, int flag) {
 	//strcpy(alg_str, alg[a].c_str());
 	itoa(k, k_str, 10);
 
-	TFOut outFile("./community/" + dataset + "_k=" + TStr(k_str)  + "_algorithm=" + alg.c_str() + "_maxflow=" + useFlow.c_str() + ".kvcc");
+	TFOut outFile("./community/" + dataset + "_k=" + TStr(k_str)  + "_algorithm=" + alg.c_str() + ".kvcc"); // "_maxflow=" + mergeMethod.c_str() 
 	VCC.Save(outFile);
 
 	return VCC;

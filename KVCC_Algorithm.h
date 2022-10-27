@@ -1,3 +1,6 @@
+
+#ifndef KVCC_ALGORITHM_H
+#define KVCC_ALGORITHM_H
 #include<Snap.h>
 
 class MyTUNGraph;
@@ -43,4 +46,4 @@ int GetMnDegNId(const PGraph& Graph);
 /// Returns the maximum integer valued flow in the network \c Net from source \c SrcNId to sink \c SnkNId according to Ford-Fulkerson algorithm. 
 //int GetMaxFlowIntFF(PNEANet& Net, const int& SrcNId, const int& SnkNId, PNEANet& ResNet);
 
-
+#endif

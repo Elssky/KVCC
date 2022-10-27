@@ -1,5 +1,10 @@
+#ifndef SWEEP_ALGORITHM_H
+#define SWEEP_ALGORITHM_H
+
+
 #include<Snap.h>
 #include"KVCC_Algorithm.h"
+#include "Utility.h"
 
 
 
@@ -27,3 +32,5 @@ protected:
 	//All_G表示当前轮次的大图，用于讲TIntV转换成PUNGraph时取子图用
 	//void Get_SSV(PUNGraph &G);
 };
+
+#endif

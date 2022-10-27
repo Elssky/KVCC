@@ -1,6 +1,5 @@
 #include"Sweep_Algorithm.h"
 #include "Heuristic_Algorithm.h"
-#include"Utility.h"
 #include <stdio.h>
 #include <windows.h>
 #include "getopt.h"
@@ -70,7 +69,7 @@ int main(int argc, char* argv[]) {
 	//TVec<TIntV> res = subsets(nums, 5, 1000);
 	//cout << res.Len();
 	int o;
-	const char* optstring = "d:a:k:s:f:"; // 有三个选项-abc，其中c选项后有冒号，所以后面必须有参数
+	const char* optstring = "d:a:k:s:m:e:t:"; // 有三个选项-abc，其中c选项后有冒号，所以后面必须有参数
 
 	while ((o = getopt(argc, argv, optstring)) != -1) {
 		switch (o) {
@@ -90,9 +89,17 @@ int main(int argc, char* argv[]) {
 			seed = optarg;
 			printf("opt is s, oprarg is: %s\n", optarg);
 			break;
-		case 'f':
-			useFlow = optarg;
+		case 'm':
+			mergeMethod = optarg;
 			printf("opt is f, oprarg is: %s\n", optarg);
+			break;
+		case 'e':
+			expandMethod = optarg;
+			printf("opt is e, oprarg is: %s\n", optarg);
+			break;
+		case 't':
+			threads = atoi(optarg);
+			printf("opt is t, oprarg is: %s\n", optarg);
 			break;
 		case '?':
 			printf("Correct Usage:\n");
@@ -138,7 +145,12 @@ int main(int argc, char* argv[]) {
 		/*string filename = "./output/" + dataset_name + "_k=" + k_str + "_alpha=" + alpha_str + ".txt";*/
 
 		//string alg[6] = { "VCCE", "BkVCC", "BkVCC(clique)", "BkVCC(k+1 clique)","BkVCC_flow", "BkVCC(clique)_flow" };
-		string filename = "./output/" + dataset_name + "_k=" + k_str + "_" + alg.c_str() + "_maxflow=" + useFlow.c_str() + ".txt";
+		string filename;
+		if(strcmp(alg.c_str(), "BkVCC") == 0)
+			filename = "./output/" + dataset_name + "_k=" + k_str + "_" + alg.c_str() + "_seed=" + seed.c_str() 
+			+"_expand=" + expandMethod.c_str() + "_merge=" + mergeMethod.c_str() + "_t=" + std::to_string(threads).c_str()  + ".txt";
+		else 
+			filename = "./output/" + dataset_name + "_k=" + k_str + "_" + alg.c_str() + ".txt";
 		FILE* outFile = fopen(filename.c_str(), "w");
 		printf("G: \nnode_nums = %d, edge_nums = %d\n", G->GetNodes(), G->GetEdges());
 		

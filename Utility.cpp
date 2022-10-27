@@ -5,17 +5,18 @@
 #include<sstream>  
 #include <set>
 #include <random>
+
 using namespace std;
 //Preprocessing function
 
-int k;
-string alg, seed, useFlow;
+int k, threads;
+string alg, seed, mergeMethod, expandMethod;
 TStr dataset;
 
 void usage() {
 	printf("Usage:\n");
-	printf("\tOptDemo [-a BkVCC/VCCE] [-d DBLP] [-k 10] [-s rand/clique/k+1-clique] [-f yes](use maxflow OR not)\n");
-	printf("e.g. KVCC.exe -a BkVCC -d DBLP -k 10 -s rand -f yes");
+	printf("\tOptDemo [-a BkVCC/VCCE] [-d DBLP] [-k 10] [-s rand/clique/k+1-clique] [-e flow/nbr] [-m flow/old] [-t 1-16](thread num)\n");
+	printf("e.g. KVCC.exe -a BkVCC -d DBLP -k 10 -s rand -e flow -m flow -t 8");
 }
 
 
@@ -166,7 +167,7 @@ void backtrack(TIntV nums, int start, int k, int alpha);
 TIntV getRandom(TIntV nums) {
 	TIntV tmp;
 	//int *tmp = new int[k];
-	cout << nums.Len() << endl;
+	//cout << nums.Len() << endl;
 	TIntV::TIter p = nums.BegI();
 
 	// 前 k 个元素先默认选上

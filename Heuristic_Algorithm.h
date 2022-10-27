@@ -1,5 +1,7 @@
-#pragma once
-#include <Snap.h>
+
+#ifndef HEURISTIC_ALGORITHM_H
+#define HEURISTIC_ALGORITHM_H
+
 #include <cliques.h>
 #include <fstream>
 #include <iostream>
@@ -7,13 +9,6 @@
 #include "Utility.h"
 
 using namespace std;
-
-typedef TVec<TInt> TIntV;
-typedef TVec<PUNGraph> TUNGraV;
-typedef TPt<TUNGraph> PUNGraph;
-typedef TVec<TIntV> TIntVIntV;
-typedef TVec <TPair<TIntV, TIntV>> TPrVIntV;
-
 
 
 class BkVCC {
@@ -39,7 +34,8 @@ protected:
 	void Adding2Subset(PUNGraph P_prime, PUNGraph G_R, TIntV& R);
 	TIntVIntV Seeding(PUNGraph G, int k, int alpha);
 	void Expanding(int k, TIntVIntV& G_S);
-	TIntV GetBoundary(TIntV G_S, TIntV &delta_S_bar);	
+	int GetCand(TIntV &G_S, TIntV& delta_S, TIntV& delta_S_bar);
+	TIntV GetBoundary(TIntV G_S, TIntV &delta_S_bar);
 	bool flag3(TIntV G_S, int& u, TIntV& delta_S, TIntV& delta_S_bar);
 	/*void Update(PUNGraph G, PUNGraph& GI, int u);*/
 	void Merging(int k, TIntVIntV& G_S, TIntVIntV& G_R);
@@ -50,6 +46,6 @@ protected:
 	PNEANet Construct_DG(PUNGraph G);
 	/*PUNGraph Merge2Graph(PUNGraph G, PUNGraph GI1, PUNGraph GI2);*/
 
-	TIntV flag3(TIntV G_S, TIntV& delta_S, TIntV& delta_S_bar);
+	int flag3(TIntV &G_S, TIntV& delta_S, TIntV& delta_S_bar);
 };
-
+#endif
