@@ -5,6 +5,7 @@
 #include<sstream>  
 #include <set>
 #include <random>
+#include<numeric>
 
 using namespace std;
 //Preprocessing function
@@ -15,7 +16,7 @@ TStr dataset;
 
 void usage() {
 	printf("Usage:\n");
-	printf("\tOptDemo [-a BkVCC/VCCE] [-d DBLP] [-k 10] [-s rand/clique/k+1-clique] [-e flow/nbr] [-m flow/old] [-t 1-16](thread num)\n");
+	printf("\tKVCC.exe [-a BkVCC/VCCE] [-d DBLP] [-k 10] [-s rand/clique/k+1-clique] [-e flow/nbr] [-m flow/old] [-t 1-16](thread num)\n");
 	printf("e.g. KVCC.exe -a BkVCC -d DBLP -k 10 -s rand -e flow -m flow -t 8");
 }
 
@@ -245,6 +246,8 @@ TVec<TIntV> randSample(TIntV nums, int k, int alpha)
 }
 
 
+
+
 TVec<TIntV> subsets(TIntV nums, int k, int alpha) {
 	res.Clr();
 	track.Clr();
@@ -284,3 +287,25 @@ void backtrack(TIntV nums, int start, int k, int alpha) {
 }
 
 
+double computeFscore(TIntVIntV S, TIntVIntV T)
+{
+	vector<double> F_score;
+	double intrs, prec, rec, F, F_max;
+	for (TIntVIntV::TIter I1 = S.BegI(); I1 < S.EndI(); I1++) {
+		F_max = 0;
+
+		for (TIntVIntV::TIter I2 = T.BegI(); I2 < T.EndI(); I2++) {
+			intrs = I1->IntrsLen(*I2);
+			if (intrs == 0) continue;
+			prec = intrs / I1->Len(); // prec = |S intrs T| / |S|
+			rec = intrs / I2->Len(); // rec = |S intrs T| / |T|
+			F = 2 * (prec * rec) / (prec + rec);
+			if (F > F_max) F_max = F;
+		}
+		
+		F_score.push_back(F_max);
+		
+	}
+	double F_result = std::accumulate(F_score.begin(), F_score.end(), 0.0) / F_score.size();
+	return F_result;
+}

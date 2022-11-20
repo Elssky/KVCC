@@ -92,13 +92,18 @@ TIntVIntV VCCE_S::KVCC_ENUM(PUNGraph &sub_G, int k, int flag) {
 
 	}
 
+	for (TIntVIntV::TIter GI = VCC.BegI(); GI < VCC.EndI(); GI++) {
+		GI->Sort();
+	}
+	VCC.Sort();
+
 	char* k_str = new char[5];
 	//char* alg_str = new char[20];
 	//string alg[4] = { "VCCE", "BkVCC", "BkVCC(clique)" ,"BkVCC(k+1 clique)" };
 
 	//strcpy(alg_str, alg[a].c_str());
 	itoa(k, k_str, 10);
-
+	//cout << dataset.CStr() << endl;
 	TFOut outFile("./community/" + dataset + "_k=" + TStr(k_str)  + "_algorithm=" + alg.c_str() + ".kvcc"); // "_maxflow=" + mergeMethod.c_str() 
 	VCC.Save(outFile);
 

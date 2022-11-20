@@ -174,6 +174,24 @@ int main(int argc, char* argv[]) {
 				"Time for Expanding: %fs\n"
 				"Time for Merging: %fs\n"
 				"Total Time: %fs\n", BkVCC_res.Len(), BkVCC._time, BkVCC._time2, BkVCC._time3, (clock() - t0) * 1.0 / CLOCKS_PER_SEC);
+		
+			//º∆À„F-score//		
+			TIntVIntV Exact_result;
+			try
+			{	
+				//cout << "D:/Git Project/KVCC-ENUM/community/" <<  dataset.CStr() << "_k=" << TStr(k_str).CStr() << "_algorithm=" << alg.c_str() << ".kvcc" << endl;
+				TFIn inFile("D:/Git Project/KVCC-ENUM/community/" + dataset + "_k=" + TStr(k_str) + "_algorithm=VCCE.kvcc");
+				Exact_result.Load(inFile);
+			}
+			catch (TPt<TExcept>)
+			{
+				cout << endl << "***Exact kvcc result does not exist***" << endl;
+			}
+
+			cout << "F_score: " << computeFscore(BkVCC_res, Exact_result) << endl;
+			fprintf(outFile, "F_score: %f\n", computeFscore(BkVCC_res, Exact_result));
+			//º∆À„F-score//	 
+
 
 			for (TIntVIntV::TIter GI = BkVCC_res.BegI(); GI < BkVCC_res.EndI(); GI++) {
 				PUNGraph GI_Graph = TSnap::GetSubGraph(G, *GI);
@@ -187,6 +205,8 @@ int main(int argc, char* argv[]) {
 				//cout << endl;
 
 			}
+
+
 		}
 
 
@@ -203,8 +223,11 @@ int main(int argc, char* argv[]) {
 			VCCE_S VCCE_S(G, k, 1);
 			PUNGraph tmp = TSnap::GetKCore(G, k);
 			printf("G(%d-core): \nnode_nums = %d, edge_nums = %d\n", k, tmp->GetNodes(), tmp->GetEdges());
-			TIntVIntV VCCE_S_res = VCCE_S.KVCC_ENUM(VCCE_S.G, VCCE_S.k);
 			VCCE_S.dataset = dataset;
+			TIntVIntV VCCE_S_res = VCCE_S.KVCC_ENUM(VCCE_S.G, VCCE_S.k);
+
+
+			
 			/*if (VCCE_S_res.Len() == 0) break;*/
 
 			fprintf(outFile, "VCC_Num:%d\n"
@@ -225,10 +248,10 @@ int main(int argc, char* argv[]) {
 				"Call for LOC_CUT(fake): %d\n"
 				"Total Time: %fs\n", VCCE_S_res.Len(), VCCE_S._time2, VCCE_S.m2, VCCE_S._time3, VCCE_S.m3, VCCE_S._time4, VCCE_S.m4, (clock() - t0) * 1.0 / CLOCKS_PER_SEC);
 
-			for (TIntVIntV::TIter GI = VCCE_S_res.BegI(); GI < VCCE_S_res.EndI(); GI++) {
+			/*for (TIntVIntV::TIter GI = VCCE_S_res.BegI(); GI < VCCE_S_res.EndI(); GI++) {
 				GI->Sort();
 			}
-			VCCE_S_res.Sort();
+			VCCE_S_res.Sort();*/
 			/*fprintf(outFile, "Node	KVCC_id\n");*/
 
 			for (TIntVIntV::TIter GI = VCCE_S_res.BegI(); GI < VCCE_S_res.EndI(); GI++) {
@@ -248,6 +271,9 @@ int main(int argc, char* argv[]) {
 		}
 
 		fclose(outFile);
+
+
+		
 
 
 

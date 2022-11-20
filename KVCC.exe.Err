@@ -28,3 +28,8 @@ D:\Git Project\KVCC-ENUM\KVCC.exe.Err
 Mon Oct 17 15:29:20 2022
 Execution stopped: Net->IsNode(SrcNId), file D:\Snap-6.0\snap-core\flow.cpp, line 152
 --------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Wed Nov 16 19:57:24 2022
+Execution stopped: !IsNode(NId) [Reason:'NodeId 20503 already exists'], file D:\Snap-6.0\snap-core\graph.cpp, line 12
+--------

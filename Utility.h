@@ -28,6 +28,11 @@ int get_vertex_id(int u, int& num, int* vertex_map_);
 void format_graph(string src);
 TVec<TIntV> randSample(TIntV nums, int k, int alpha);
 
+double computeFscore(TIntVIntV S, TIntVIntV T);
+// For each discovered community S, 
+// we compute the F-score with every ground-truth community T of the dataset and choose the largest as Fscore
+// use the average value as final F-score
+
 //全局变量，用于接收命令行参数
 extern int k, threads;
 extern string alg, seed, mergeMethod, expandMethod;
