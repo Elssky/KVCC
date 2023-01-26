@@ -279,6 +279,7 @@ void backtrack(TIntV nums, int start, int k, int alpha) {
 		return;
 	}
 	
+	
 	for (int i = start; i < nums.Len(); i++) {
 		track.Add(nums[i]);
 		backtrack(nums, i + 1, k, alpha);
@@ -289,6 +290,7 @@ void backtrack(TIntV nums, int start, int k, int alpha) {
 
 double computeFscore(TIntVIntV S, TIntVIntV T)
 {
+	// 1/4 修改了F-score计算方式，应该是针对每个真实社区计算F-score，取最大值
 	vector<double> F_score;
 	double intrs, prec, rec, F, F_max;
 	for (TIntVIntV::TIter I1 = S.BegI(); I1 < S.EndI(); I1++) {
@@ -308,4 +310,57 @@ double computeFscore(TIntVIntV S, TIntVIntV T)
 	}
 	double F_result = std::accumulate(F_score.begin(), F_score.end(), 0.0) / F_score.size();
 	return F_result;
+}
+
+int getDegeneracy(PUNGraph G_in) {
+	TUNGraph G = *G_in;
+	TIntVIntV D(10000, 0); //bigger maximum degree need more memory.
+	TIntV L;
+	int deg, maxdeg = 0;
+	for (TUNGraph::TNodeI NI = G.BegNI(); NI < G.EndNI(); NI++) {
+		deg = NI.GetDeg();
+		maxdeg = max(deg, maxdeg);
+		D[deg].Add(NI.GetId());
+		//cout <<deg<<" "<< L[deg].Len() << endl;
+	}
+	/*for (int i = 0; i < maxdeg; i++) {
+		cout << "i= " << i << endl;;
+		for (TIntV::TIter LI = D[i].BegI(); LI < D[i].EndI(); LI++) {
+			cout << *LI <<" ";
+		}
+		cout << endl;
+	}*/
+	int k = 0, v;
+	int n = G.GetNodes();
+	while (n != 0) {
+		//std::cout << n <<endl;
+		for (int i = 0; i < maxdeg; i++) {
+			if (!D[i].Empty()) {
+				k = max(k, i);
+				v = D[i].GetRndVal();
+				//cout << v << endl;
+
+				L.Add(v);
+				D[i].DelIfIn(v);
+				for (int d = 0; d < G.GetNI(v).GetDeg(); d++) {
+					int nbr = G.GetNI(v).GetNbrNId(d);
+					if (!L.IsIn(nbr)) {
+						int d_nbr = G.GetNI(nbr).GetDeg();
+						D[d_nbr].DelIfIn(nbr);
+						D[d_nbr - 1].Add(nbr);
+					}
+				}
+				G.DelNode(v);
+				break;
+			}
+
+		}
+		n--;
+	}
+	
+	cout << k << endl;
+	cout << G.GetNodes() << endl;
+	cout << G_in->GetNodes() << endl;
+	return k;
+
 }

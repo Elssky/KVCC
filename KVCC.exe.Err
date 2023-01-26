@@ -33,3 +33,38 @@ D:\Git Project\KVCC-ENUM\KVCC.exe.Err
 Wed Nov 16 19:57:24 2022
 Execution stopped: !IsNode(NId) [Reason:'NodeId 20503 already exists'], file D:\Snap-6.0\snap-core\graph.cpp, line 12
 --------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Sun Nov 27 15:37:57 2022
+Execution stopped: KeyId!=-1, file D:\Snap-6.0\glib-core\hash.h, line 416
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Sun Nov 27 15:40:06 2022
+Execution stopped: KeyId!=-1, file D:\Snap-6.0\glib-core\hash.h, line 416
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Thu Jan 26 11:54:02 2023
+Execution stopped: !IsNode(NId) [Reason:'NodeId 19831 already exists'], file D:\Snap-6.0\snap-core\graph.cpp, line 12
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Thu Jan 26 11:57:28 2023
+Execution stopped: !IsNode(NId) [Reason:'NodeId 19831 already exists'], file D:\Snap-6.0\snap-core\graph.cpp, line 12
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Thu Jan 26 12:00:52 2023
+Execution stopped: !IsNode(NId) [Reason:'NodeId 19831 already exists'], file D:\Snap-6.0\snap-core\graph.cpp, line 12
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Thu Jan 26 12:02:58 2023
+Execution stopped: !IsNode(NId) [Reason:'NodeId 19831 already exists'], file D:\Snap-6.0\snap-core\graph.cpp, line 12
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Thu Jan 26 12:43:18 2023
+Execution stopped: !IsNode(NId) [Reason:'NodeId 228868 already exists'], file D:\Snap-6.0\snap-core\graph.cpp, line 12
+--------

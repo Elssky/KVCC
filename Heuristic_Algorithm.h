@@ -35,6 +35,7 @@ protected:
 	TIntVIntV Seeding(PUNGraph G, int k, int alpha);
 	void Expanding(int k, TIntVIntV& G_S);
 	int GetCand(TIntV &G_S, TIntV& delta_S, TIntV& delta_S_bar);
+	int ring_expanding(TIntV& G_S, TIntV& delta_S, TIntV& delta_S_bar);
 	TIntV GetBoundary(TIntV G_S, TIntV &delta_S_bar);
 	bool flag3(TIntV G_S, int& u, TIntV& delta_S, TIntV& delta_S_bar);
 	/*void Update(PUNGraph G, PUNGraph& GI, int u);*/

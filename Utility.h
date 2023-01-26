@@ -33,6 +33,8 @@ double computeFscore(TIntVIntV S, TIntVIntV T);
 // we compute the F-score with every ground-truth community T of the dataset and choose the largest as Fscore
 // use the average value as final F-score
 
+int getDegeneracy(PUNGraph G_in);
+
 //全局变量，用于接收命令行参数
 extern int k, threads;
 extern string alg, seed, mergeMethod, expandMethod;

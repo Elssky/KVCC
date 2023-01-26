@@ -90,7 +90,7 @@ TIntVIntV BkVCC::BkVCC_ENUM(PUNGraph& G, int k, int alpha)
 			//打乱顺序
 			//G_S.Reverse();
 			Merging(k, G_S, G_R);
-			cout << "after Merging subgraph num:" << G_S.Len() << endl;
+			/*cout << "after Merging subgraph num:" << G_S.Len() << endl;*/
 		}
 			
 		//
@@ -377,20 +377,31 @@ TIntVIntV BkVCC::Seeding(PUNGraph G, int k, int alpha)
 
 		//step1.先生成max_cliques
 		TCliqueOverlap::GetMaxCliques(G, k + 1, G_S);
+		//cout << G_S.Len()<< endl;
+
 		for (TUNGraph::TNodeI NI = G->BegNI(); NI < G->EndNI(); NI++) {
-			
+			//cout << NI.GetId() << endl;
 			CandMaintain.AddDat(NI.GetId(), 0);
 			deg.AddDat(NI.GetId(), NI.GetDeg());
 		}
-		int i = 0;
+
 		//step2.将处于max_cliques的点从CandMaintain设为1，表示已被选入子图
+		//TODO：直接将max_cliques中的点删除
+		//TUNGraph G_temp = *G;
 		for (TIntVIntV::TIter GI = G_S.BegI(); GI < G_S.EndI(); GI++) {
 			for (TIntV::TIter NI = GI->BegI(); NI < GI->EndI(); NI++) {
 				CandMaintain.GetDat(*NI) = 1;
-				cout << i++ << ": " << CandMaintain.GetDat(*NI) << endl;
+				//if(G_temp.IsNode(*NI)) G_temp.DelNode(*NI);
+				
+				//cout << i++ << ": " << CandMaintain.GetDat(*NI) << endl;
 				
 			}
 		}
+		//cout << G_temp.GetNodes() << endl;
+		//cout << G_S.Len() << endl;
+		
+		int i = 0;
+
 		deg.SortByDat(); //non-decreasing order
 
 		for (TIntH::TIter HI = deg.BegI(); HI < deg.EndI(); HI++) {
@@ -417,14 +428,14 @@ TIntVIntV BkVCC::Seeding(PUNGraph G, int k, int alpha)
 		G_S.Merge();
 	}
 
-
+	//cout << G_S.Len();
 	TFOut outFile("./seedgraph/" + dataset + "_k=" + TStr(k_str) + "_alpha=" + TStr(alpha_str) + "_seed=" + TStr(seed.c_str()) + ".seed");
 	G_S.Save(outFile);
-	//cout << G_S.Len();
-	//for (TIntVIntV::TIter TI = G_S.BegI(); TI < G_S.EndI(); TI++) {
-	//	cout << TI->Len() << " ";
-	//}
-	//cout << endl;
+	
+	/*for (TIntVIntV::TIter TI = G_S.BegI(); TI < G_S.EndI(); TI++) {
+		cout << TI->Len() << " ";
+	}
+	cout << endl;*/
 	return G_S;
 }
 
@@ -492,7 +503,7 @@ TIntVIntV BkVCC::Seeding(PUNGraph G, int k, int alpha)
 void BkVCC::Expanding(int k, TIntVIntV& G_S) {
 	clock_t t2 = clock();
 	//int u;
-	if (threads == 1) {
+	if (threads <= 1) {
 		TIntV delta_S, delta_S_bar;
 		for (TIntVIntV::TIter GI = G_S.BegI(); GI < G_S.EndI(); GI++) {
 
@@ -507,6 +518,10 @@ void BkVCC::Expanding(int k, TIntVIntV& G_S) {
 				else if (strcmp(expandMethod.c_str(), "nbr") == 0) {
 					cand = flag3(*GI, delta_S, delta_S_bar);
 				}
+				else if (strcmp(expandMethod.c_str(), "ring") == 0) {
+					cand = ring_expanding(*GI, delta_S, delta_S_bar);
+				}
+
 				//cout << "cand:" << cand << endl;
 
 			} while (cand != 0);
@@ -540,11 +555,14 @@ void BkVCC::Expanding(int k, TIntVIntV& G_S) {
 					else if (strcmp(expandMethod.c_str(), "nbr") == 0) {
 						cand = flag3(GI, delta_S, delta_S_bar);
 					}
+					else if (strcmp(expandMethod.c_str(), "ring") == 0) {
+						cand = ring_expanding(GI, delta_S, delta_S_bar);
+					}
 					//cout << "cand:" << cand << endl;
 
 				} while (cand != 0);
 				G_S.GetVal(i) = GI;
-				std::cout << "thread: " << threadId << endl;
+				//std::cout << "thread: " << threadId << endl;
 			}
 		}
 	}
@@ -554,6 +572,176 @@ void BkVCC::Expanding(int k, TIntVIntV& G_S) {
 	return;
 	
 
+}
+
+//用于ring_expanding中节点加入到local-kvcc中， 其邻居更新到local-kvcc边数
+
+void update_neighbour(TIntVIntV& S, TIntIntVH in_neighs, TIntIntVH out_neighs, int v, TIntV& res) {
+	TIntV neigh = out_neighs.GetDat(v);
+	//cout << neigh.Len() << endl;
+	for (TIntV::TIter NI = neigh.BegI(); NI < neigh.EndI(); NI++) {
+		int idx = in_neighs.GetDat(*NI).Len();
+		//cout << idx << endl;
+		if (idx < 1) continue;
+		if (idx == k - 1) {
+			S[idx].DelIfIn(*NI);
+			S[idx + 1].AddMerged(*NI);
+			res.Add(*NI);
+			//update_neighbour(S, in_neighs, out_neighs, *NI, res);
+		}
+		else if (idx < k - 1) {
+			if(S[idx].IsIn(*NI)) S[idx].DelIfIn(*NI);		
+			S[idx + 1].AddMerged(*NI);
+		}
+		
+	}
+}
+
+int BkVCC::ring_expanding(TIntV& G_S, TIntV& delta_S, TIntV& delta_S_bar) {
+	//step1. 仅考虑每个local-kvcc的节点和一跳邻居节点之间的边(诱导子图)
+	delta_S = GetBoundary(G_S, delta_S_bar);
+	TIntV G_sub = G_S;
+	G_sub.AddVMerged(delta_S_bar);
+	PUNGraph Gra = TSnap::GetSubGraph(G, G_sub);
+
+	//step2. 每个节点计算自己到local-kvcc的边个数，分成集合S_(k+), S_(k-1), S_(k-2), ...
+	// 使用二维数组存储集合
+	TIntVIntV S;
+	for (int i = 0; i <= k; i++) {
+		S.Add({});
+	}
+	TIntV res = {};
+	TIntV nb_u1 = {}, nb_u2 = {};
+	//in_neighs存储下每个候选节点的属于local-kvcc的邻居，节省计算时间
+	//out_neighs存储下每个候选节点的属于候选集中的邻居
+	TIntIntVH in_neighs, out_neighs;
+
+	for (TIntV::TIter TI = delta_S_bar.BegI(); TI < delta_S_bar.EndI(); TI++) {
+		//cout << *TI << endl;
+		nb_u1.Clr();
+		nb_u2.Clr();
+		//nb_u = getneighbor(G, *TI);
+		TUNGraph::TNodeI CtrNode = Gra->GetNI(*TI);
+		for (int i = 0; i < CtrNode.GetInDeg(); ++i) {
+			if (delta_S.IsIn(CtrNode.GetInNId(i))) //只把local-kvcc中的邻居加进去
+				nb_u1.AddMerged(CtrNode.GetInNId(i));
+			else
+				nb_u2.AddMerged(CtrNode.GetInNId(i));
+				
+
+		}
+		in_neighs.AddDat(*TI, nb_u1);
+		out_neighs.AddDat(*TI, nb_u2);
+		int index = nb_u1.Len();
+		
+		//index为S集合下标索引
+		if (index >= k) index = k; //这里k统一存储k+的节点
+		S[index].AddMerged(*TI);
+
+	}
+
+	//step3. S_(k+)的点首先加入到kvcc中，其邻居更新到kvcc的边数，更新S
+	int S_Len;
+
+	for (TIntV::TIter TI = S[k].BegI(); TI < S[k].EndI(); TI++) {
+		res.Add(*TI);
+		update_neighbour(S, in_neighs, out_neighs, *TI, res);
+	}
+
+	//好像没有必要while循环
+	/*
+	S_Len = S[k].Len();
+	do {
+		S_Len = S[k].Len();
+		for (TIntV::TIter TI = S[k].BegI(); TI < S[k].EndI(); TI++) {
+			res.Add(*TI);
+			update_neighbour(S, neighs, *TI);
+		}
+	} while (S[k].Len() != S_Len);*/
+
+	//step4. Sk-1中的点，查找邻居中是否有Sk-1中的点与其与kvcc中交点集合不完全相同，
+	//若有，两点同时加入kvcc，其邻居更新与kvcc连边数量，
+	//继续此过程，直到剩余的Sk-1中的点都不满足条件
+	//TODO: 这里的问题是一遍for循环能保证剩余的点都不满足条件吗？
+	//另外如果存在点后加入k-1集合，就有可能出现*TI在\*NI后面的情况，这时TI--两次
+	//cout << 1 << endl;
+	//for (TIntV::TIter TI = S[k - 1].BegI(); TI < S[k - 1].EndI(); TI++) {
+	//	
+	//	TIntV neigh = out_neighs.GetDat(*TI);
+
+	//	for (TIntV::TIter NI = neigh.BegI(); NI < neigh.EndI(); NI++) {
+
+	//		if (in_neighs.GetDat(*NI).Len() == k - 1) {
+	//			int common_neighs = TSnap::GetCommon(in_neighs.GetDat(*TI), in_neighs.GetDat(*NI));
+	//			if (common_neighs < k - 1) {
+	//				//这两个节点可以加入kvcc
+	//				res.Add(*TI);
+	//				res.Add(*NI);
+	//				update_neighbour(S, in_neighs, out_neighs, *TI, res);
+	//				update_neighbour(S, in_neighs, out_neighs, *NI, res);
+	//				S[k - 1].DelIfIn(*TI);
+	//				S[k - 1].DelIfIn(*NI);
+	//				//if(S[k - 1].get)
+	//				TI--; //因为删除*TI导致后面的元素前移，所以迭代器索引-1，删除*NI不会受影响，因为NI肯定出现在*TI后面（如果在前面，应该已经更新了）
+	//				break;
+	//			}
+	//		}
+	//	}
+	//}
+	//cout << 2 << endl;
+
+	/*int flag = 1;
+	do {
+		S_Len = S[k - 1].Len();
+		
+
+	} while (flag == 1);*/
+
+	//step5. 从S_(k-2)开始，找clique，具体来讲S_(k-2)找3-clique，S_(k-3)找4-clique，...,S_(k-i)找size>= (i+1)的maximal clique
+	//然后判断这些clique在local-kvcc中并集的邻居的个数是否$\geq k$
+	//若是，则同时加入到local-kvcc中，并更新其周围邻居。
+	int num = 0;
+	for (int i = k - 1; i > 0; i--) {
+		TIntVIntV cliques;
+		TIntV neigh_Union;
+		if (S[i].Len() < k - i + 1) continue;
+		PUNGraph sub_G = TSnap::GetSubGraph(Gra, S[i]);
+		/*PUNGraph sub_core = TSnap::GetKCore(sub_G, k - i);*/
+		//printf("sub_G: \nnode_nums = %d, edge_nums = %d\n", sub_G->GetNodes(), sub_G->GetEdges());
+		/*printf("sub_core: \nnode_nums = %d, edge_nums = %d\n", sub_core->GetNodes(), sub_core->GetEdges());*/
+		TCliqueOverlap::GetMaxCliques(sub_G, k - i + 1, cliques);
+		//TCliqueOverlap::GetCliquesSizeof(sub_core, k - i + 1, cliques);
+		//cout << i << ":" << cliques.Len() << endl;
+		for (int clique_idx = 0; clique_idx < cliques.Len(); clique_idx++) {
+			neigh_Union.Clr();
+			for (TIntV::TIter TI = cliques[clique_idx].BegI(); TI < cliques[clique_idx].EndI(); TI++) {
+				if (!S[i].IsIn(*TI)) break;
+				neigh_Union.AddV(in_neighs.GetDat(*TI));
+				neigh_Union.Merge();
+				if (neigh_Union.Len() >= k) break;
+			}
+			if (neigh_Union.Len() >= k) {
+				for (TIntV::TIter TI = cliques[clique_idx].BegI(); TI < cliques[clique_idx].EndI(); TI++) {
+					res.Add(*TI);
+					S[i].DelIfIn(*TI);
+					update_neighbour(S, in_neighs, out_neighs, *TI, res);
+				}
+
+				num += cliques[clique_idx].Len();
+			}			
+		}
+		/*for (TIntV::TIter TI = S[k - i].BegI(); TI < S[k - i].EndI(); TI++) {
+
+		}*/
+	}
+	if (num != 0) {
+		cout << "expanding_num:" << num << endl;
+	}
+	
+
+	G_S.AddV(res);
+	G_S.Merge();
+	return res.Len();
 }
 
 //Parallel Expanding
@@ -671,10 +859,10 @@ int BkVCC::GetCand(TIntV &G_S, TIntV& delta_S, TIntV& delta_S_bar) {
 		delta_S_bar = delta_S_bar_star;
 	}
 
-	std::cout << "G_S(before): " << G_S.Len() << endl;
+	/*std::cout << "G_S(before): " << G_S.Len() << endl;*/
 	G_S.AddVMerged(delta_S_bar_star);
 
-	std::cout << "G_S(after): " << G_S.Len() << endl;
+	/*std::cout << "G_S(after): " << G_S.Len() << endl;*/
 	//std::cout << delta_S_bar_star.Len() << endl;
 
 	return res.Len();
@@ -876,7 +1064,7 @@ void BkVCC::Merging(int k, TIntVIntV& G_S, TIntVIntV& G_R)
 		for (int t = 0; t < threads; t++) {
 			G_S_set.Add({});
 		}
-		cout << G_S_set.Len() << endl;
+		/*cout << G_S_set.Len() << endl;*/
 		for (int i = 0; i < G_S.Len(); i++) {
 			G_S_set[i % threads].Add(G_S[i]);
 		}
@@ -981,7 +1169,7 @@ void BkVCC::Merging(int k, TIntVIntV& G_S, TIntVIntV& G_R)
 		G_S = G_S_set[0];
 		
 	}
-	else if (threads == 1) {
+	else if (threads <= 1) {
 		//int Len = G_S.Len();
 		//vector<int>::iterator it;
 		//vector<int> visited(Len, 0);
