@@ -81,8 +81,8 @@ TIntVIntV BkVCC::BkVCC_ENUM(PUNGraph& G, int k, int alpha)
 	cout << "Seeding subgraph num:" << G_S.Len() << endl;
 	_time += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
 
-	do{
-		
+	do {
+
 		G_S_prime = G_S;
 		//j = 0;
 		//merging G_S		
@@ -92,7 +92,7 @@ TIntVIntV BkVCC::BkVCC_ENUM(PUNGraph& G, int k, int alpha)
 			Merging(k, G_S, G_R);
 			/*cout << "after Merging subgraph num:" << G_S.Len() << endl;*/
 		}
-			
+
 		//
 		//for (TIntVIntV::TIter GI = G_S.BegI(); GI < G_S.EndI(); GI++) {
 		//	PUNGraph GI_Graph = TSnap::GetSubGraph(G, *GI);
@@ -145,9 +145,9 @@ TIntVIntV BkVCC::BkVCC_ENUM(PUNGraph& G, int k, int alpha)
 	}
 	G_R.Merge();
 	//保存结果
-	TFOut outFile("D:/Git Project/KVCC-ENUM/community/" + dataset + "_k=" + TStr(k_str) + 
+	TFOut outFile("D:/Git Project/KVCC-ENUM/community/" + dataset + "_k=" + TStr(k_str) +
 		"_alpha=" + TStr(alpha_str) + "_algorithm=" + TStr(alg.c_str()) + "_expand=" + expandMethod.c_str()
-		+ "_merge=" + mergeMethod.c_str() +"_t=" + std::to_string(threads).c_str() + ".kvcc");
+		+ "_merge=" + mergeMethod.c_str() + "_t=" + std::to_string(threads).c_str() + ".kvcc");
 	G_R.Save(outFile);
 
 	return G_R;
@@ -324,7 +324,7 @@ TIntVIntV BkVCC::Seeding(PUNGraph G, int k, int alpha)
 
 	try
 	{
-		TFIn inFile("./seedgraph/" + dataset + "_k=" + TStr(k_str) + "_alpha=" + TStr(alpha_str) + "_seed="+ TStr(seed.c_str()) + ".seed");
+		TFIn inFile("./seedgraph/" + dataset + "_k=" + TStr(k_str) + "_alpha=" + TStr(alpha_str) + "_seed=" + TStr(seed.c_str()) + ".seed");
 		//TFIn inFile("D:/Git Project/KVCC-ENUM/seedgraph/DBLP_k=5_alpha=1000_algorithm=BkVCC.seed");
 		G_S.Load(inFile);
 	}
@@ -392,14 +392,14 @@ TIntVIntV BkVCC::Seeding(PUNGraph G, int k, int alpha)
 			for (TIntV::TIter NI = GI->BegI(); NI < GI->EndI(); NI++) {
 				CandMaintain.GetDat(*NI) = 1;
 				//if(G_temp.IsNode(*NI)) G_temp.DelNode(*NI);
-				
+
 				//cout << i++ << ": " << CandMaintain.GetDat(*NI) << endl;
-				
+
 			}
 		}
 		//cout << G_temp.GetNodes() << endl;
 		//cout << G_S.Len() << endl;
-		
+
 		int i = 0;
 
 		deg.SortByDat(); //non-decreasing order
@@ -431,7 +431,7 @@ TIntVIntV BkVCC::Seeding(PUNGraph G, int k, int alpha)
 	//cout << G_S.Len();
 	TFOut outFile("./seedgraph/" + dataset + "_k=" + TStr(k_str) + "_alpha=" + TStr(alpha_str) + "_seed=" + TStr(seed.c_str()) + ".seed");
 	G_S.Save(outFile);
-	
+
 	/*for (TIntVIntV::TIter TI = G_S.BegI(); TI < G_S.EndI(); TI++) {
 		cout << TI->Len() << " ";
 	}
@@ -539,11 +539,11 @@ void BkVCC::Expanding(int k, TIntVIntV& G_S) {
 			//}
 		}
 	}
-	else if(threads >= 2) {
-		#pragma omp parallel
+	else if (threads >= 2) {
+#pragma omp parallel
 		{
 			int threadId = omp_get_thread_num();
-			#pragma omp for
+#pragma omp for
 			for (int i = 0; i < G_S.Len(); i++) {
 				int cand;
 				TIntV delta_S, delta_S_bar;
@@ -570,7 +570,7 @@ void BkVCC::Expanding(int k, TIntVIntV& G_S) {
 	_time2 += (double)(clock() - t2) * 1.0 / (double)CLOCKS_PER_SEC;
 
 	return;
-	
+
 
 }
 
@@ -585,15 +585,15 @@ void update_neighbour(TIntVIntV& S, TIntIntVH in_neighs, TIntIntVH out_neighs, i
 		if (idx < 1) continue;
 		if (idx == k - 1) {
 			S[idx].DelIfIn(*NI);
-			S[idx + 1].AddMerged(*NI);
+			//S[idx + 1].AddMerged(*NI);
 			res.Add(*NI);
 			//update_neighbour(S, in_neighs, out_neighs, *NI, res);
 		}
 		else if (idx < k - 1) {
-			if(S[idx].IsIn(*NI)) S[idx].DelIfIn(*NI);		
+			if (S[idx].IsIn(*NI)) S[idx].DelIfIn(*NI);
 			S[idx + 1].AddMerged(*NI);
 		}
-		
+
 	}
 }
 
@@ -627,13 +627,13 @@ int BkVCC::ring_expanding(TIntV& G_S, TIntV& delta_S, TIntV& delta_S_bar) {
 				nb_u1.AddMerged(CtrNode.GetInNId(i));
 			else
 				nb_u2.AddMerged(CtrNode.GetInNId(i));
-				
+
 
 		}
 		in_neighs.AddDat(*TI, nb_u1);
 		out_neighs.AddDat(*TI, nb_u2);
 		int index = nb_u1.Len();
-		
+
 		//index为S集合下标索引
 		if (index >= k) index = k; //这里k统一存储k+的节点
 		S[index].AddMerged(*TI);
@@ -693,7 +693,7 @@ int BkVCC::ring_expanding(TIntV& G_S, TIntV& delta_S, TIntV& delta_S_bar) {
 	/*int flag = 1;
 	do {
 		S_Len = S[k - 1].Len();
-		
+
 
 	} while (flag == 1);*/
 
@@ -701,11 +701,15 @@ int BkVCC::ring_expanding(TIntV& G_S, TIntV& delta_S, TIntV& delta_S_bar) {
 	//然后判断这些clique在local-kvcc中并集的邻居的个数是否$\geq k$
 	//若是，则同时加入到local-kvcc中，并更新其周围邻居。
 	int num = 0;
+	TIntV S_remain, S_cand;
 	for (int i = k - 1; i > 0; i--) {
 		TIntVIntV cliques;
 		TIntV neigh_Union;
+		S_cand.Clr();
+		S_cand.AddV(S[i]);
+		S_cand.AddV(S_remain);
 		if (S[i].Len() < k - i + 1) continue;
-		PUNGraph sub_G = TSnap::GetSubGraph(Gra, S[i]);
+		PUNGraph sub_G = TSnap::GetSubGraph(Gra, S_cand);
 		/*PUNGraph sub_core = TSnap::GetKCore(sub_G, k - i);*/
 		//printf("sub_G: \nnode_nums = %d, edge_nums = %d\n", sub_G->GetNodes(), sub_G->GetEdges());
 		/*printf("sub_core: \nnode_nums = %d, edge_nums = %d\n", sub_core->GetNodes(), sub_core->GetEdges());*/
@@ -715,7 +719,7 @@ int BkVCC::ring_expanding(TIntV& G_S, TIntV& delta_S, TIntV& delta_S_bar) {
 		for (int clique_idx = 0; clique_idx < cliques.Len(); clique_idx++) {
 			neigh_Union.Clr();
 			for (TIntV::TIter TI = cliques[clique_idx].BegI(); TI < cliques[clique_idx].EndI(); TI++) {
-				if (!S[i].IsIn(*TI)) break;
+				if (!S_cand.IsIn(*TI)) break;
 				neigh_Union.AddV(in_neighs.GetDat(*TI));
 				neigh_Union.Merge();
 				if (neigh_Union.Len() >= k) break;
@@ -723,13 +727,15 @@ int BkVCC::ring_expanding(TIntV& G_S, TIntV& delta_S, TIntV& delta_S_bar) {
 			if (neigh_Union.Len() >= k) {
 				for (TIntV::TIter TI = cliques[clique_idx].BegI(); TI < cliques[clique_idx].EndI(); TI++) {
 					res.Add(*TI);
+					int idx = in_neighs.GetDat(*TI).Len();
 					S[i].DelIfIn(*TI);
 					update_neighbour(S, in_neighs, out_neighs, *TI, res);
 				}
 
 				num += cliques[clique_idx].Len();
-			}			
+			}
 		}
+		S_remain.AddVMerged(S[i]);
 		/*for (TIntV::TIter TI = S[k - i].BegI(); TI < S[k - i].EndI(); TI++) {
 
 		}*/
@@ -737,7 +743,7 @@ int BkVCC::ring_expanding(TIntV& G_S, TIntV& delta_S, TIntV& delta_S_bar) {
 	if (num != 0) {
 		cout << "expanding_num:" << num << endl;
 	}
-	
+
 
 	G_S.AddV(res);
 	G_S.Merge();
@@ -762,7 +768,7 @@ int BkVCC::ring_expanding(TIntV& G_S, TIntV& delta_S, TIntV& delta_S_bar) {
 //}
 
 
-int BkVCC::GetCand(TIntV &G_S, TIntV& delta_S, TIntV& delta_S_bar) {
+int BkVCC::GetCand(TIntV& G_S, TIntV& delta_S, TIntV& delta_S_bar) {
 	TIntV res = {};
 	delta_S = GetBoundary(G_S, delta_S_bar);
 	TIntV nb_u;
@@ -788,7 +794,7 @@ int BkVCC::GetCand(TIntV &G_S, TIntV& delta_S, TIntV& delta_S_bar) {
 	TIntH flow;
 	//源节点，目标节点
 	int s = -1, t = -1;
-	
+
 	//源节点必须是非边缘点
 	for (TIntV::TIter TI = G_S.BegI(); TI < G_S.EndI(); TI++) {
 
@@ -814,13 +820,13 @@ int BkVCC::GetCand(TIntV &G_S, TIntV& delta_S, TIntV& delta_S_bar) {
 
 
 
-	
+
 	TIntV G_U = G_S;
 	G_U.AddVMerged(delta_S_bar);
-	
-	
 
-	
+
+
+
 
 	//cout << s << endl;
 	TIntV delta_S_bar_star;//记录候选顶点
@@ -831,8 +837,8 @@ int BkVCC::GetCand(TIntV &G_S, TIntV& delta_S, TIntV& delta_S_bar) {
 
 		PUNGraph Gra = TSnap::GetSubGraph(G, G_U);
 
-		PNEANet DG = Construct_DG(Gra);		
-		
+		PNEANet DG = Construct_DG(Gra);
+
 		int offset = Gra->GetMxNId();
 		//cout << s + offset << endl;
 		for (TIntV::TIter TI = delta_S_bar.BegI(); TI < delta_S_bar.EndI(); TI++) {
@@ -855,7 +861,7 @@ int BkVCC::GetCand(TIntV &G_S, TIntV& delta_S, TIntV& delta_S_bar) {
 		cout << endl;*/
 		it++;
 		if (delta_S_bar == delta_S_bar_star || it >= itr) break;
-		
+
 		delta_S_bar = delta_S_bar_star;
 	}
 
@@ -916,7 +922,7 @@ TIntV BkVCC::GetBoundary(TIntV G_S, TIntV& delta_S_bar)
 }
 
 
-int BkVCC::flag3(TIntV &G_S, TIntV& delta_S, TIntV& delta_S_bar) {
+int BkVCC::flag3(TIntV& G_S, TIntV& delta_S, TIntV& delta_S_bar) {
 	TIntV res = {};
 
 	delta_S = GetBoundary(G_S, delta_S_bar);
@@ -1069,11 +1075,11 @@ void BkVCC::Merging(int k, TIntVIntV& G_S, TIntVIntV& G_R)
 			G_S_set[i % threads].Add(G_S[i]);
 		}
 		do {
-			#pragma omp parallel 
+#pragma omp parallel 
 			{
 				//G_S_temp = G_S;
 				int threadId = omp_get_thread_num();
-			#pragma omp for
+#pragma omp for
 				for (int t = 0; t < threads; t++) {
 
 					for (int i = 0; i < G_S_set[t].Len(); i++) {
@@ -1086,9 +1092,9 @@ void BkVCC::Merging(int k, TIntVIntV& G_S, TIntVIntV& G_R)
 									G_Union.AddVMerged(GI1);
 									G_Union.AddVMerged(GI2);
 
-								
+
 									if (IskVCC(G_Union, k)) {
-										#pragma omp critical			
+#pragma omp critical			
 										G_R.Add(G_Union);
 										G_S_set[t].DelIfIn(GI1);
 										G_S_set[t].DelIfIn(GI2);
@@ -1114,7 +1120,7 @@ void BkVCC::Merging(int k, TIntVIntV& G_S, TIntVIntV& G_R)
 									G_Union.AddVMerged(GI2);
 
 									if (IskVCC(G_Union, k)) {
-										#pragma omp critical
+#pragma omp critical
 										G_R.Add(G_Union);
 										G_S_set[t].DelIfIn(GI1);
 										G_S_set[t].DelIfIn(GI2);
@@ -1143,7 +1149,7 @@ void BkVCC::Merging(int k, TIntVIntV& G_S, TIntVIntV& G_R)
 			}*/
 			int half_length = G_S_set.Len() / 2;
 			for (int t = 0; t < half_length; t++) {
-				G_S_set[t].AddVMerged(G_S_set[t + half_length]);				
+				G_S_set[t].AddVMerged(G_S_set[t + half_length]);
 			}
 			for (int t = G_S_set.Len() - 1; t >= half_length; t--) {
 				G_S_set.DelIfIn(G_S_set[t]);
@@ -1164,10 +1170,10 @@ void BkVCC::Merging(int k, TIntVIntV& G_S, TIntVIntV& G_R)
 			//}
 			//G_S_set = G_S_set_temp;
 			cout << G_S_set.Len() << endl;
-			
+
 		} while (G_S_set.Len() != 1);
 		G_S = G_S_set[0];
-		
+
 	}
 	else if (threads <= 1) {
 		//int Len = G_S.Len();
@@ -1227,7 +1233,7 @@ void BkVCC::Merging(int k, TIntVIntV& G_S, TIntVIntV& G_R)
 		//		//G_S.Merge();
 		//	}
 		//}
-		
+
 
 		//std::cout << std::endl;
 
@@ -1265,7 +1271,7 @@ void BkVCC::Merging(int k, TIntVIntV& G_S, TIntVIntV& G_R)
 				cout << "j:" << j << endl;*/
 				if (strcmp(mergeMethod.c_str(), "flow") == 0) {
 					if (IsMergeValid_maxflow(GI1, GI2)) {
-						
+
 
 						TIntV G_Union = {};
 						G_Union.AddVMerged(GI1);
@@ -1285,7 +1291,7 @@ void BkVCC::Merging(int k, TIntVIntV& G_S, TIntVIntV& G_R)
 							G_S.DelIfIn(GI2);
 							//G_S.Merge();
 						}
-						std::cout << "After Merging:" << G_Union.Len() << endl;					
+						std::cout << "After Merging:" << G_Union.Len() << endl;
 						std::cout << "G_S.Len:" << G_S.Len() << endl;
 						continue;
 					}
@@ -1293,7 +1299,7 @@ void BkVCC::Merging(int k, TIntVIntV& G_S, TIntVIntV& G_R)
 				}
 				else {
 					if (IsMergeValid(GI1, GI2)) {
-						
+
 
 						TIntV G_Union = {};
 						G_Union.AddVMerged(GI1);
@@ -1313,7 +1319,7 @@ void BkVCC::Merging(int k, TIntVIntV& G_S, TIntVIntV& G_R)
 							G_S.DelIfIn(GI2);
 							//G_S.Merge();
 						}
-						std::cout << "After Merging:" << G_Union.Len() << endl;					
+						std::cout << "After Merging:" << G_Union.Len() << endl;
 						std::cout << "G_S.Len:" << G_S.Len() << endl;
 						continue;
 					}
@@ -1324,7 +1330,7 @@ void BkVCC::Merging(int k, TIntVIntV& G_S, TIntVIntV& G_R)
 			i++;
 		}
 	}
-	
+
 
 	_time3 += (double)(clock() - t3) * 1.0 / (double)CLOCKS_PER_SEC;
 	return;
@@ -1448,11 +1454,11 @@ cout << "min(nb_1, nb_2):" << min(nb_1.Len(), nb_2.Len()) << endl;*/
 }*/
 //cout << S_ints_S_prime.Len() + min(nb_1.Len(), nb_2.Len()) << endl;
 
-if (S_ints_S_prime.Len() + min(nb_1.Len(), nb_2.Len()) >= k) {
-	return true;
-}
+	if (S_ints_S_prime.Len() + min(nb_1.Len(), nb_2.Len()) >= k) {
+		return true;
+	}
 
-return false;
+	return false;
 }
 
 bool BkVCC::IsMergeValid_maxflow(TIntV G_S, TIntV G_S_prime) {
@@ -1543,7 +1549,7 @@ bool BkVCC::IsMergeValid_maxflow(TIntV G_S, TIntV G_S_prime) {
 	}*/
 
 
-	
+
 
 	TIntV G_U = {};
 	G_U.AddVMerged(G_S);
@@ -1554,7 +1560,7 @@ bool BkVCC::IsMergeValid_maxflow(TIntV G_S, TIntV G_S_prime) {
 
 	PNEANet DG = Construct_DG(Gra);
 
-	
+
 
 	if (s != -1 && t != -1) {
 		int offset = Gra->GetMxNId();

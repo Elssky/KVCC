@@ -5,7 +5,7 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>-a BkVCC -s clique -m flow -e ring -d DBLP -k 15 -t 1</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-a BkVCC -s clique -m flow -e ring -d Amazon -k 5 -t 1</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>
