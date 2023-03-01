@@ -157,11 +157,11 @@ void format_graph(string src)
 
 
 
-TVec<TIntV> res;
-TIntV track;
+
+
 //int conb[51][51] = {};
 
-void backtrack(TIntV nums, int start, int k, int alpha);
+void backtrack(TIntV nums, int start, int k, int alpha, TIntV& track, TVec<TIntV>& res);
 
 
 /* 返回数组中 k 个随机节点的值 */
@@ -214,6 +214,8 @@ int Count(int n, int m)
 
 TVec<TIntV> randSample(TIntV nums, int k, int alpha)
 {
+	TVec<TIntV> res;
+	TIntV track;
 	res.Clr();
 	//cout << res.Len()<<" "<<alpha << endl;
 	int n = nums.Len();
@@ -224,7 +226,7 @@ TVec<TIntV> randSample(TIntV nums, int k, int alpha)
 	
 	
 
-	if (Count(n, m) < 5*alpha) return subsets(nums, k, alpha);
+	if (Count(n, m) < 5*alpha) return subsets(nums, k, alpha, track, res);
 	
 	
 	//随机生成子集
@@ -248,11 +250,11 @@ TVec<TIntV> randSample(TIntV nums, int k, int alpha)
 
 
 
-TVec<TIntV> subsets(TIntV nums, int k, int alpha) {
+TVec<TIntV> subsets(TIntV nums, int k, int alpha, TIntV& track, TVec<TIntV>& res) {
 	res.Clr();
 	track.Clr();
 	int n = nums.Len();
-	backtrack(nums, 0, k, alpha);
+	backtrack(nums, 0, k, alpha, track, res);
 	/*if(n < 50) backtrack(nums, 0, k, alpha);
 	else {
 		while (res.Len() < alpha) {
@@ -268,7 +270,7 @@ TVec<TIntV> subsets(TIntV nums, int k, int alpha) {
 	return res;
 }
 
-void backtrack(TIntV nums, int start, int k, int alpha) {
+void backtrack(TIntV nums, int start, int k, int alpha, TIntV& track, TVec<TIntV>& res) {
 	
 	if (res.Len() >= alpha) {
 		return;
@@ -282,7 +284,7 @@ void backtrack(TIntV nums, int start, int k, int alpha) {
 	
 	for (int i = start; i < nums.Len(); i++) {
 		track.Add(nums[i]);
-		backtrack(nums, i + 1, k, alpha);
+		backtrack(nums, i + 1, k, alpha, track, res);
 		track.DelLast();
 	}
 }
@@ -300,8 +302,9 @@ double computeFscore(TIntVIntV S, TIntVIntV T)
 			intrs = I1->IntrsLen(*I2);
 			if (intrs == 0) continue;
 			prec = intrs / I1->Len(); // prec = |S intrs T| / |S|
-			rec = intrs / I2->Len(); // rec = |S intrs T| / |T|
-			F = 2 * (prec * rec) / (prec + rec);
+			//rec = intrs / I2->Len(); // rec = |S intrs T| / |T|
+			//F = 2 * (prec * rec) / (prec + rec);
+			F = prec;
 			if (F > F_max) F_max = F;
 		}
 		
@@ -310,6 +313,11 @@ double computeFscore(TIntVIntV S, TIntVIntV T)
 	}
 	double F_result = std::accumulate(F_score.begin(), F_score.end(), 0.0) / F_score.size();
 	return F_result;
+}
+
+
+double computeFsame(TIntVIntV S, TIntVIntV T) {
+	return(computeFscore(S, T) + computeFscore(T, S)) / 2.;
 }
 
 int getDegeneracy(PUNGraph G_in) {

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -135,12 +135,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <Optimization>MaxSpeed</Optimization>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <OpenMPSupport>true</OpenMPSupport>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -155,6 +156,7 @@
     <ClInclude Include="..\..\Snap-6.0\snap-adv\cliques.h" />
     <ClInclude Include="..\..\Snap-6.0\snap-core\Snap.h" />
     <ClInclude Include="getopt.h" />
+    <ClInclude Include="Graph.h" />
     <ClInclude Include="Heuristic_Algorithm.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
@@ -162,6 +164,7 @@
     <ClInclude Include="Sweep_Algorithm.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="Test.h" />
     <ClInclude Include="Utility.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
@@ -172,6 +175,7 @@
     <ClCompile Include="..\..\Snap-6.0\snap-core\Snap.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Graph.cpp" />
     <ClCompile Include="gteopt.cpp" />
     <ClCompile Include="Heuristic_Algorithm.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
@@ -183,6 +187,7 @@
     <ClCompile Include="Sweep_Algorithm.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Test.cpp" />
     <ClCompile Include="Utility.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>

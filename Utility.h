@@ -23,7 +23,7 @@ typedef TVec<TIntV> TIntVIntV;
 typedef TVec <TPair<TIntV, TIntV>> TPrVIntV;
 
 void usage();
-TVec<TIntV> subsets(TIntV nums, int k, int alpha);
+TVec<TIntV> subsets(TIntV nums, int k, int alpha, TIntV& track, TVec<TIntV>& res);
 int get_vertex_id(int u, int& num, int* vertex_map_);
 void format_graph(string src);
 TVec<TIntV> randSample(TIntV nums, int k, int alpha);
@@ -32,6 +32,7 @@ double computeFscore(TIntVIntV S, TIntVIntV T);
 // For each discovered community S, 
 // we compute the F-score with every ground-truth community T of the dataset and choose the largest as Fscore
 // use the average value as final F-score
+double computeFsame(TIntVIntV S, TIntVIntV T);
 
 int getDegeneracy(PUNGraph G_in);
 

@@ -42,6 +42,12 @@
     <ClInclude Include="getopt.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Test.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Graph.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Snap-6.0\snap-core\Snap.cpp">
@@ -69,6 +75,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="gteopt.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Test.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Graph.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

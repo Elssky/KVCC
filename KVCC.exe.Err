@@ -68,3 +68,40 @@ D:\Git Project\KVCC-ENUM\KVCC.exe.Err
 Thu Jan 26 12:43:18 2023
 Execution stopped: !IsNode(NId) [Reason:'NodeId 228868 already exists'], file D:\Snap-6.0\snap-core\graph.cpp, line 12
 --------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Sun Jan 29 17:38:09 2023
+Execution stopped: !IsNode(NId) [Reason:'NodeId 79884 already exists'], file D:\Snap-6.0\snap-core\graph.cpp, line 12
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Sun Jan 29 17:39:57 2023
+Execution stopped: !IsNode(NId) [Reason:'NodeId 79884 already exists'], file D:\Snap-6.0\snap-core\graph.cpp, line 12
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Sun Jan 29 20:59:13 2023
+Execution stopped: !IsNode(NId) [Reason:'NodeId 4446 already exists'], file D:\Snap-6.0\snap-core\graph.cpp, line 12
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Mon Jan 30 11:19:01 2023
+Execution stopped: !IsNode(NId) [Reason:'NodeId 235243 already exists'], file D:\Snap-6.0\snap-core\graph.cpp, line 12
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Mon Jan 30 12:19:27 2023
+Execution stopped: !IsNode(NId) [Reason:'NodeId 235243 already exists'], file D:\Snap-6.0\snap-core\graph.cpp, line 12
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Sat Feb 18 16:29:42 2023
+Message: TVec::Resize: bad allocation, Length:2097152, Capacity:4194304, New capacity:-1, Type:TVec<class THashKeyDat<class TInt,class TNEANet::TEdge>,int> [Program failed to allocate more memory. Solution-1: Get a bigger machine and a 64-bit compiler.]
+Execution stopped: Fail, file D:\Snap-6.0\glib-core\ds.h, line 809
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Tue Feb 21 12:56:28 2023
+Message: TVec::Resize: bad allocation, Length:134217728, Capacity:268435456, New capacity:-1, Type:TVec<class TVec<class TInt,int>,int> [Program failed to allocate more memory. Solution-1: Get a bigger machine and a 64-bit compiler.]
+Execution stopped: Fail, file D:\Snap-6.0\glib-core\ds.h, line 809
+--------

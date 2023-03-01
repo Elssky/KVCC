@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <windows.h>
 #include "getopt.h"
+#include "Test.h"
 
 
 
@@ -177,21 +178,51 @@ int main(int argc, char* argv[]) {
 		
 			//计算F-score//		
 			TIntVIntV Exact_result;
+			vector<vector<int>> groundTruth;
 			try
 			{	
 				//cout << "D:/Git Project/KVCC-ENUM/community/" <<  dataset.CStr() << "_k=" << TStr(k_str).CStr() << "_algorithm=" << alg.c_str() << ".kvcc" << endl;
 				TFIn inFile("D:/Git Project/KVCC-ENUM/community/" + dataset + "_k=" + TStr(k_str) + "_algorithm=VCCE.kvcc");
 				Exact_result.Load(inFile);
+				
+				int i = 0;
+				for (TIntVIntV::TIter GI = Exact_result.BegI(); GI < Exact_result.EndI(); GI++) {
+					groundTruth.push_back(vector<int>());
+					for (TIntV::TIter NI = GI->BegI(); NI < GI->EndI(); NI++) {
+						groundTruth[i].push_back(*NI);
+
+					}
+					i++;
+				}
 			}
 			catch (TPt<TExcept>)
 			{
 				cout << endl << "***Exact kvcc result does not exist***" << endl;
 			}
 
-			cout << "F_score: " << computeFscore(BkVCC_res, Exact_result) << endl;
-			fprintf(outFile, "F_score: %f\n", computeFscore(BkVCC_res, Exact_result));
-			//计算F-score//	 
+			vector<vector<int>> commSet;
+			int i = 0;
+			for (TIntVIntV::TIter GI = BkVCC_res.BegI(); GI < BkVCC_res.EndI(); GI++) {
+				commSet.push_back(vector<int>());
+				for (TIntV::TIter NI = GI->BegI(); NI < GI->EndI(); NI++) {
+					commSet[i].push_back(*NI);
+					
+				}
+				i++;
+			}
+			cout << "F_same:" << Test::computeFsame(commSet, groundTruth) << endl;	
+			fprintf(outFile, "F_same: %f\n", Test::computeFsame(commSet, groundTruth));
+			cout << "Jaccard:" << Test::computeJaccard(commSet, groundTruth) << endl;
+			fprintf(outFile, "Jaccard: %f\n", Test::computeJaccard(commSet, groundTruth));
+			cout << "NMI:" << Test::computeNMI(commSet, groundTruth) << endl;
+			fprintf(outFile, "NMI: %f\n", Test::computeNMI(commSet, groundTruth));
 
+			//cout << "F_score: " << computeFscore(BkVCC_res, Exact_result) << endl;
+			//fprintf(outFile, "F_score: %f\n", computeFscore(BkVCC_res, Exact_result));
+			////计算F-score//	 
+			//cout << "F_same: " << computeFsame(BkVCC_res, Exact_result) << endl;
+			//fprintf(outFile, "F_same: %f\n", computeFsame(BkVCC_res, Exact_result));
+			////计算F-same//
 
 			for (TIntVIntV::TIter GI = BkVCC_res.BegI(); GI < BkVCC_res.EndI(); GI++) {
 				PUNGraph GI_Graph = TSnap::GetSubGraph(G, *GI);
