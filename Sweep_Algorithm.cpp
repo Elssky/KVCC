@@ -1,4 +1,4 @@
-#include"Sweep_Algorithm.h"
+ï»¿#include"Sweep_Algorithm.h"
 #include"set"
 #include"vector"
 #include <map>
@@ -24,16 +24,14 @@ VCCE_S::VCCE_S(PUNGraph G_, int k_, int Compute_SSV_times_) {
 	//}
 }
 
-
-TIntVIntV VCCE_S::KVCC_ENUM(PUNGraph &sub_G, int k, int flag) {
-	omp_set_num_threads(threads);
+TIntVIntV VCCE_S::KVCC_ENUM(PUNGraph& sub_G, int k, int flag) {
 	//func: Find k-VCCs in Graph G
 	//params:
 	//	G: Undirected Graph
 	//	k: an integer
 	//return:
 	//	all k-vertex connected components (Type: TIntVIntV)
-
+	omp_set_num_threads(threads);
 	//step1: initialize set VCC as empty
 	TIntVIntV VCC;  // return as K-Vccs;
 
@@ -62,66 +60,37 @@ TIntVIntV VCCE_S::KVCC_ENUM(PUNGraph &sub_G, int k, int flag) {
 		//}
 		G_set.Add(I->NIdV);
 	}
-	/*printf("G_set_len: %d\n", G_set.Len());*/
-	
+	//printf("G_set_len: %d\n", G_set.Len());
+
 	//step4: find vertex cut in G
-	
-	int last_len = 0, start = 0;
-	while (G_set.Len()!= last_len) {
-		printf("G_set_len: %d\n", G_set.Len());
-		printf("last_len: %d\n", last_len);
-		start = last_len;
-		last_len = G_set.Len();
+	TIntV S; //Vertex_Cut
 
-#pragma omp parallel 
-		{
-			TIntV S; //Vertex_Cut
+	for (TIntVIntV::TIter GI = G_set.BegI(); GI < G_set.EndI(); GI++) {
+		//clock_t t1 = clock();
 
-#pragma omp for private(S) 	
-			for (int i = start; i < G_set.Len(); i++) {
-				TIntVIntV::TIter GI = &G_set[i];
-				printf("i:%d\n", i);
-				cout << "G_set[i].Len: " << G_set[i].Len() << endl;
-				
-				/*int threadId = omp_get_thread_num();
-				cout << omp_get_num_threads() << endl;*/
-				/*}
-				for (TIntVIntV::TIter GI = G_set.BegI(); GI < G_set.EndI(); GI++) {*/
-				//clock_t t1 = clock();
+		S = Global_Cut(*GI, k, flag, G2);
+		//m++;
+		//_time += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
+		//printf("SSV_len: %d\n", (*GI)->SSV.Len());
+		//printf("%d\n", S.Empty());
+		if (S.Empty()) {
 
-				S = Global_Cut(*GI, k, flag, G2);
-				//m++;
-				//_time += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
-				//printf("SSV_len: %d\n", (*GI)->SSV.Len());
-				//printf("%d\n", S.Empty());
-				if (S.Empty()) {
-#pragma omp critical
-					VCC.Add(*GI);
-				}
-				else {
-					TIntVIntV G_i = Overlap_Partition(*GI, S, G2);
-					G_set.AddV(G_i);
-					/*printf("G_set_len: %d\n", G_set.Len());*/
-					printf("G_i[1].Len(): %d\n", G_i[1].Len());
-					printf("G_i[2].Len(): %d\n", G_i[2].Len());
-					//for (TIntVIntV::TIter G_ij = G_i.BegI(); G_ij < G_i.EndI(); G_ij++) {
-					//	//printf("SSV_len: %d\n", (*G_ij)->SSV.Len());
-					//	PUNGraph temp_G = TSnap::GetSubGraph(G2, *G_ij);
-					//	TIntVIntV VCC_i = KVCC_ENUM(temp_G, k, 1);
-					//#pragma omp critical
-					//	VCC.AddV(VCC_i);
-					//	//printf("%d\n", VCC_i.Len());
-
-					//}
-				}
+			VCC.Add(*GI);
+		}
+		else {
+			TIntVIntV G_i = Overlap_Partition(*GI, S, G2);
+			//printf("%d\n", G_i.Len());
+			for (TIntVIntV::TIter G_ij = G_i.BegI(); G_ij < G_i.EndI(); G_ij++) {
+				//printf("SSV_len: %d\n", (*G_ij)->SSV.Len());
+				PUNGraph temp_G = TSnap::GetSubGraph(G2, *G_ij);
+				TIntVIntV VCC_i = KVCC_ENUM(temp_G, k, 1);
+				VCC.AddV(VCC_i);
+				//printf("%d\n", VCC_i.Len());
 
 			}
 		}
-		
-	}
-	
 
-	
+	}
 
 	for (TIntVIntV::TIter GI = VCC.BegI(); GI < VCC.EndI(); GI++) {
 		GI->Sort();
@@ -135,19 +104,19 @@ TIntVIntV VCCE_S::KVCC_ENUM(PUNGraph &sub_G, int k, int flag) {
 	//strcpy(alg_str, alg[a].c_str());
 	itoa(k, k_str, 10);
 	//cout << dataset.CStr() << endl;
-	TFOut outFile("./community/" + dataset + "_k=" + TStr(k_str)  + "_algorithm=" + alg.c_str() + ".kvcc"); // "_maxflow=" + mergeMethod.c_str() 
+	TFOut outFile("./community/" + dataset + "_k=" + TStr(k_str) + "_algorithm=" + alg.c_str() + ".kvcc"); // "_maxflow=" + mergeMethod.c_str() 
 	VCC.Save(outFile);
 
 	return VCC;
 }
 
-TIntV VCCE_S::Global_Cut(TIntV &subG, int k, int flag, PUNGraph All_G)
+TIntV VCCE_S::Global_Cut(TIntV& subG, int k, int flag, PUNGraph All_G)
 {
-	
-	TIntV S;
-	MyTCnComV CS;	
+
+	TIntV S, result = {};
+	MyTCnComV CS;
 	int u, v;
-	
+
 	//1. compute sparse certification SC
 
 	PUNGraph SC = Compute_SC(subG, k, CS, All_G);
@@ -155,7 +124,7 @@ TIntV VCCE_S::Global_Cut(TIntV &subG, int k, int flag, PUNGraph All_G)
 	//SC->SSV = G->SSV;
 	//2. direct graph
 	PNEANet SC_bar = Construct_DG(SC);
-	
+
 	////3. detect strong side vertices
 	//if (Compute_SSV_times == 1) {
 	//	if (flag == 0) {
@@ -193,72 +162,110 @@ TIntV VCCE_S::Global_Cut(TIntV &subG, int k, int flag, PUNGraph All_G)
 	u = GetMnDegNId(SC);
 
 	//4.Init
-	
+
 	for (MyTCnComV::TIter I = CS.BegI(); I < CS.EndI(); I++) {
 		//printf("%d\n", I->NIdV);
 		I->g_deposit = 0;
 	}
-	
+
 	for (TUNGraph::TNodeI NI = SC->BegNI(); NI < SC->EndNI(); NI++) {
 		deposit.AddDat(NI.GetId(), 0);
 		pru.AddDat(NI.GetId(), 0);
 	}
 
-	
+
 	TSnap::GetShortPath(All_G, u, dist, FALSE);
 	dist.SortByDat(FALSE);
 
 
 	//5.Phase1 & Sweep
 	Sweep(SC, u, pru, deposit, CS);
-	
-	for (TIntH::TIter HI = dist.BegI(); HI < dist.EndI(); HI++) {
-		
-		v = HI.GetKey();
-		
-		if (pru.GetDat(v) == TRUE) {
-			pru_node++;
-			continue;
-		}
-		S = Loc_Cut(u, v, SC_bar, SC, k);
-		non_pru_node++;
-		if (!S.Empty()) {
+	bool finish_flag = false;
+#pragma omp parallel private(S)
+	{
+	#pragma omp  for 
+		for (int i = 0; i < dist.Len(); i++) {
 			
-			return S;
-		}
-		Sweep(SC, v, pru, deposit, CS);
-		
-	}
-	
-	//6.Phase2
-	//printf("%d\n", SC->SSV.IsIn(u));
-	int e;
-	for (int i = 0; i < SC->GetNI(u).GetDeg(); i++) {
-		for (int j = i + 1; j < SC->GetNI(u).GetDeg(); j++) {
-			//if (NI1 == NI2) continue;
-			int NI1 = SC->GetNI(u).GetNbrNId(i);
-			int NI2 = SC->GetNI(u).GetNbrNId(j);
-			bool flag = FALSE;
-			for (MyTCnComV::TIter I = CS.BegI(); I < CS.EndI(); I++) {
-				if (I->IsNIdIn(NI1) || I->IsNIdIn(NI2)) {
-					if (I->IsNIdIn(NI1) && I->IsNIdIn(NI2)) {
-						flag = TRUE;
-					}
-					break;
-				}
-			}
-			if (flag == TRUE) {		
-				//pru_node++;
+			if (finish_flag == true) {
 				continue;
 			}
-			S = Loc_Cut(NI1, NI2, SC_bar, SC, k);
-			//non_pru_node++;
-			c++;
-			if (!S.Empty()) {
+			int threadId = omp_get_thread_num();
+			cout << threadId << endl;
+		/*}
+		for (TIntH::TIter HI = dist.BegI(); HI < dist.EndI(); HI++) {*/
+			
+			/*v = HI.GetKey();*/
+			v = dist.GetKey(i);
+			if (pru.GetDat(v) == TRUE) {
+				pru_node++;
+				continue;
+			}
+			#pragma omp critical
+			S = Loc_Cut(u, v, SC_bar, SC, k);
+			non_pru_node++;
+			if (finish_flag == false && !S.Empty()) {
+				finish_flag = true;
+				result = S;
+			}
+		/*	if (!S.Empty()) {
+
 				return S;
+			}*/
+			#pragma omp critical
+			Sweep(SC, v, pru, deposit, CS);
+
+		}
+
+		//6.Phase2
+	//printf("%d\n", SC->SSV.IsIn(u));
+
+		int e;
+
+#pragma omp  for
+		for (int i = 0; i < SC->GetNI(u).GetDeg(); i++) {
+			if (finish_flag == true) {
+				continue;
+			}
+			/*int threadId = omp_get_thread_num();
+			cout << threadId << endl;*/
+			for (int j = i + 1; j < SC->GetNI(u).GetDeg(); j++) {
+				
+				//if (NI1 == NI2) continue;
+				int NI1 = SC->GetNI(u).GetNbrNId(i);
+				int NI2 = SC->GetNI(u).GetNbrNId(j);
+				bool flag = FALSE;
+				for (MyTCnComV::TIter I = CS.BegI(); I < CS.EndI(); I++) {
+					if (I->IsNIdIn(NI1) || I->IsNIdIn(NI2)) {
+						if (I->IsNIdIn(NI1) && I->IsNIdIn(NI2)) {
+							flag = TRUE;
+						}
+						break;
+					}
+				}
+				if (flag == TRUE) {
+					//pru_node++;
+					continue;
+				}
+			#pragma omp critical
+				S = Loc_Cut(NI1, NI2, SC_bar, SC, k);
+				//non_pru_node++;
+				c++;
+				if (finish_flag == false && !S.Empty()) {
+					finish_flag = true;
+					result = S;
+				}
+				/*if (!S.Empty()) {
+					return S;			
+				}*/
+				
 			}
 		}
 	}
+	
+	
+	
+
+	
 	//if (!SC->SSV.IsIn(u)) {
 	//	int e;
 	//	PUNGraph Neigh = TSnap::GetEgonet(SC, u, e);
@@ -287,8 +294,8 @@ TIntV VCCE_S::Global_Cut(TIntV &subG, int k, int flag, PUNGraph All_G)
 	//		}
 	//	}
 	//}
-	
-	return {};
+
+	return result;
 }
 
 TIntVIntV VCCE_S::Overlap_Partition(TIntV subG, TIntV Vertex_Cut, PUNGraph All_G) {
@@ -301,16 +308,16 @@ TIntVIntV VCCE_S::Overlap_Partition(TIntV subG, TIntV Vertex_Cut, PUNGraph All_G
 	TIntVIntV G_set;
 	//printf("Vertex_Cut: %d\n", Vertex_Cut.Len());
 	//printf("G: \n node_nums = %d, edge_nums = %d\n", TSnap::CntNonZNodes(G), TSnap::CntUniqUndirEdges(G));
-	TSnap::DelNodes(G_, Vertex_Cut); // ÏàÓ¦µÄ±ß»á×Ô¶¯É¾³ýÂð To test
+	TSnap::DelNodes(G_, Vertex_Cut); // ï¿½ï¿½Ó¦ï¿½Ä±ß»ï¿½ï¿½Ô¶ï¿½É¾ï¿½ï¿½ï¿½ï¿½ To test
 	//printf("G_: \n node_nums = %d, edge_nums = %d\n", TSnap::CntNonZNodes(G_), TSnap::CntUniqUndirEdges(G_));
 	TCnComV ConV;
 	TSnap::GetSccs(G_, ConV);
 	//printf("ConV: %d\n", ConV.Len());
 	for (TCnComV::TIter I = ConV.BegI(); I < ConV.EndI(); I++) {
 		for (TIntV::TIter NI = Vertex_Cut.BegI(); NI < Vertex_Cut.EndI(); NI++) {
-			I->Add(NI->Val);		
+			I->Add(NI->Val);
 		}
-		//¼Ì³Ðstrong side vertex
+		//ï¿½Ì³ï¿½strong side vertex
 		/*Check_SSV(G, GI, Vertex_Cut);*/
 		G_set.Add(I->NIdV);
 	}
@@ -319,9 +326,9 @@ TIntVIntV VCCE_S::Overlap_Partition(TIntV subG, TIntV Vertex_Cut, PUNGraph All_G
 	return G_set;
 }
 
-PUNGraph VCCE_S::Compute_SC(TIntV subG, int k, MyTCnComV &CS, PUNGraph All_G)
+PUNGraph VCCE_S::Compute_SC(TIntV subG, int k, MyTCnComV& CS, PUNGraph All_G)
 {
-	
+
 	PUNGraph SC = TUNGraph::New();
 	PUNGraph G_ = TSnap::GetSubGraph(All_G, subG);
 	PNGraph BFSTree;
@@ -333,15 +340,15 @@ PUNGraph VCCE_S::Compute_SC(TIntV subG, int k, MyTCnComV &CS, PUNGraph All_G)
 		visited.clear();
 		//printf("F%d:\n", i);
 		int j = 0;
-		
+
 		while (visited.size() < NodeNums) {
 			for (TUNGraph::TNodeI NI = G_->BegNI(); NI < G_->EndNI(); NI++) {
 
 				if (std::find(visited.begin(), visited.end(), NI.GetId()) == visited.end()) {
-					
+
 					BFSTree = TSnap::MyGetBfsTree(G_, NI.GetId(), TRUE, FALSE);  //My BFS Function modified in bfsdfs.h
 					del.clear();
-					
+
 
 					for (TNGraph::TNodeI TNI = BFSTree->BegNI(); TNI < BFSTree->EndNI(); TNI++) {
 						visited.push_back(TNI.GetId());
@@ -366,7 +373,7 @@ PUNGraph VCCE_S::Compute_SC(TIntV subG, int k, MyTCnComV &CS, PUNGraph All_G)
 		}
 	}
 	TSnap::GetSccs(F_k, CS);
-	for (MyTCnComV::TIter I = CS.BegI(); I < CS.EndI(); I++) {	
+	for (MyTCnComV::TIter I = CS.BegI(); I < CS.EndI(); I++) {
 		if (I->Len() < 2) {
 			CS.DelAll(*I);
 		}
@@ -378,10 +385,10 @@ PUNGraph VCCE_S::Compute_SC(TIntV subG, int k, MyTCnComV &CS, PUNGraph All_G)
 
 
 void VCCE_S::Detect_SSV(PUNGraph& G)
-{	
+{
 
-	//ÅÐ¶ÏÊÇ·ñÎª×ÓÍ¼£¬ÈôÊÇ£¬¿ÉÀûÓÃP57 Lemma11¡¢12ÍÆµ¼³öµÄ¼Ó¿ì¼ì²âSSVµÄ·½·¨£»
-	//Todo: P57 Lemma11¡¢12ÍÆµ¼³öµÄ¼Ó¿ì¼ì²âSSVµÄ·½·¨
+	//ï¿½Ð¶ï¿½ï¿½Ç·ï¿½Îªï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½Ç£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½P57 Lemma11ï¿½ï¿½12ï¿½Æµï¿½ï¿½ï¿½ï¿½Ä¼Ó¿ï¿½ï¿½ï¿½SSVï¿½Ä·ï¿½ï¿½ï¿½ï¿½ï¿½
+	//Todo: P57 Lemma11ï¿½ï¿½12ï¿½Æµï¿½ï¿½ï¿½ï¿½Ä¼Ó¿ï¿½ï¿½ï¿½SSVï¿½Ä·ï¿½ï¿½ï¿½
 
 	clock_t t1 = clock();
 	if (G->SSV.Len() > 0) {
@@ -466,7 +473,7 @@ bool VCCE_S::IsSSV(PUNGraph G, int NId) {
 	for (TUNGraph::TNodeI NI1 = Neigh->BegNI(); NI1 < Neigh->EndNI(); NI1++) {
 
 		set1.clear();
-		
+
 		for (int i = 0; i < NI1.GetInDeg(); i++) {
 			set1.insert(NI1.GetInNId(i));
 		}
@@ -494,8 +501,8 @@ bool VCCE_S::IsSSV(PUNGraph G, int NId) {
 
 void VCCE_S::Check_SSV(PUNGraph& G, PUNGraph& subG, TIntV S) {
 
-	//ÅÐ¶ÏÊÇ·ñÎª×ÓÍ¼£¬ÈôÊÇ£¬¿ÉÀûÓÃP57 Lemma11¡¢12ÍÆµ¼³öµÄ¼Ó¿ì¼ì²âSSVµÄ·½·¨£»
-	//Todo: P57 Lemma11¡¢12ÍÆµ¼³öµÄ¼Ó¿ì¼ì²âSSVµÄ·½·¨
+	//ï¿½Ð¶ï¿½ï¿½Ç·ï¿½Îªï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½Ç£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½P57 Lemma11ï¿½ï¿½12ï¿½Æµï¿½ï¿½ï¿½ï¿½Ä¼Ó¿ï¿½ï¿½ï¿½SSVï¿½Ä·ï¿½ï¿½ï¿½ï¿½ï¿½
+	//Todo: P57 Lemma11ï¿½ï¿½12ï¿½Æµï¿½ï¿½ï¿½ï¿½Ä¼Ó¿ï¿½ï¿½ï¿½SSVï¿½Ä·ï¿½ï¿½ï¿½
 	//printf("%d\n", G->IsSub);
 
 	std::set<int> set1, set2, set3;
@@ -503,7 +510,7 @@ void VCCE_S::Check_SSV(PUNGraph& G, PUNGraph& subG, TIntV S) {
 	for (TIntV::TIter NI2 = S.BegI(); NI2 < S.EndI(); NI2++) {
 		set2.insert(*NI2);
 	}
-	
+
 	for (TIntV::TIter NI = G->SSV.BegI(); NI < G->SSV.EndI(); NI++) {
 		set1.clear();
 		set3.clear();
@@ -524,7 +531,7 @@ void VCCE_S::Sweep(PUNGraph G, int v, TIntH& pru, TIntH& deposit, MyTCnComV& CS)
 
 	pru.GetDat(v) = TRUE;
 	int e;
-	
+
 
 	for (int i = 0; i < G->GetNI(v).GetDeg(); i++) {
 		int w = G->GetNI(v).GetNbrNId(i);
