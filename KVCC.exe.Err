@@ -105,3 +105,63 @@ Tue Feb 21 12:56:28 2023
 Message: TVec::Resize: bad allocation, Length:134217728, Capacity:268435456, New capacity:-1, Type:TVec<class TVec<class TInt,int>,int> [Program failed to allocate more memory. Solution-1: Get a bigger machine and a 64-bit compiler.]
 Execution stopped: Fail, file D:\Snap-6.0\glib-core\ds.h, line 809
 --------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Mon Mar 13 20:19:08 2023
+Execution stopped: Net->IsNode(SnkNId), file D:\Snap-6.0\snap-core\flow.cpp, line 153
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Mon Mar 13 20:20:00 2023
+Execution stopped: Net->IsNode(SnkNId), file D:\Snap-6.0\snap-core\flow.cpp, line 153
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Mon Mar 13 20:20:36 2023
+Execution stopped: Net->IsNode(SnkNId), file D:\Snap-6.0\snap-core\flow.cpp, line 153
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Mon Mar 13 20:21:57 2023
+Execution stopped: Net->IsNode(SnkNId), file D:\Snap-6.0\snap-core\flow.cpp, line 153
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Mon Mar 13 20:22:13 2023
+Execution stopped: Net->IsNode(SnkNId), file D:\Snap-6.0\snap-core\flow.cpp, line 153
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Mon Mar 13 20:26:34 2023
+Execution stopped: Net->IsNode(SnkNId), file D:\Snap-6.0\snap-core\flow.cpp, line 153
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Mon Mar 13 20:27:26 2023
+Execution stopped: Net->IsNode(SnkNId), file D:\Snap-6.0\snap-core\flow.cpp, line 153
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Mon Mar 13 20:28:18 2023
+Execution stopped: Net->IsNode(SnkNId), file D:\Snap-6.0\snap-core\flow.cpp, line 153
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Mon Mar 13 20:29:59 2023
+Execution stopped: Net->IsNode(SnkNId), file D:\Snap-6.0\snap-core\flow.cpp, line 153
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Mon Mar 13 20:30:58 2023
+Execution stopped: Net->IsNode(SnkNId), file D:\Snap-6.0\snap-core\flow.cpp, line 153
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Mon Mar 13 20:31:56 2023
+Execution stopped: Net->IsNode(SnkNId), file D:\Snap-6.0\snap-core\flow.cpp, line 153
+--------
+--------
+D:\Git Project\KVCC-ENUM\KVCC.exe.Err
+Mon Mar 13 20:43:53 2023
+Execution stopped: Net->IsNode(SnkNId), file D:\Snap-6.0\snap-core\flow.cpp, line 153
+--------

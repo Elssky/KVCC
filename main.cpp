@@ -4,6 +4,7 @@
 #include <windows.h>
 #include "getopt.h"
 #include "Test.h"
+#include <iostream>
 
 
 
@@ -121,7 +122,7 @@ int main(int argc, char* argv[]) {
 	//TStr dataset = "network";
 	//PUNGraph G = TSnap::LoadEdgeList<PUNGraph>("./dataset/" + dataset + ".dat", 0, 1);
 	string dataset_name = dataset.CStr();
-
+	string folderPath = "output/" + dataset_name;
 
 
 	//int K_Arr[] = { 5 };
@@ -147,11 +148,22 @@ int main(int argc, char* argv[]) {
 
 		//string alg[6] = { "VCCE", "BkVCC", "BkVCC(clique)", "BkVCC(k+1 clique)","BkVCC_flow", "BkVCC(clique)_flow" };
 		string filename;
+
+		CreateDirectory(folderPath.c_str(), NULL);
+		/*if (!GetFileAttributesA(folderPath.c_str()) & FILE_ATTRIBUTE_DIRECTORY) {
+			bool flag = CreateDirectory(folderPath.c_str(), NULL);
+
+		}
+		else {
+			cout << "Directory already exists." << endl;
+		}*/
+
+
 		if(strcmp(alg.c_str(), "BkVCC") == 0)
-			filename = "./output/" + dataset_name + "_k=" + k_str + "_" + alg.c_str() + "_seed=" + seed.c_str() 
+			filename = "./" + folderPath + "/" + dataset_name + "_k=" + k_str + "_" + alg.c_str() + "_seed=" + seed.c_str()
 			+"_expand=" + expandMethod.c_str() + "_merge=" + mergeMethod.c_str() + "_t=" + std::to_string(threads).c_str()  + ".txt";
 		else 
-			filename = "./output/" + dataset_name + "_k=" + k_str + "_" + alg.c_str() + ".txt";
+			filename = "./" + folderPath + "/"  +  dataset_name + "_k=" + k_str + "_" + alg.c_str() +"_t=" + std::to_string(threads).c_str() + ".txt";
 		FILE* outFile = fopen(filename.c_str(), "w");
 		printf("G: \nnode_nums = %d, edge_nums = %d\n", G->GetNodes(), G->GetEdges());
 		

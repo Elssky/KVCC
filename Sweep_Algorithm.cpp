@@ -24,7 +24,9 @@ VCCE_S::VCCE_S(PUNGraph G_, int k_, int Compute_SSV_times_) {
 	//}
 }
 
+
 TIntVIntV VCCE_S::KVCC_ENUM(PUNGraph &sub_G, int k, int flag) {
+	omp_set_num_threads(threads);
 	//func: Find k-VCCs in Graph G
 	//params:
 	//	G: Undirected Graph
@@ -60,37 +62,66 @@ TIntVIntV VCCE_S::KVCC_ENUM(PUNGraph &sub_G, int k, int flag) {
 		//}
 		G_set.Add(I->NIdV);
 	}
-	//printf("G_set_len: %d\n", G_set.Len());
+	/*printf("G_set_len: %d\n", G_set.Len());*/
 	
 	//step4: find vertex cut in G
-	TIntV S; //Vertex_Cut
+	
+	int last_len = 0, start = 0;
+	while (G_set.Len()!= last_len) {
+		printf("G_set_len: %d\n", G_set.Len());
+		printf("last_len: %d\n", last_len);
+		start = last_len;
+		last_len = G_set.Len();
 
-	for (TIntVIntV::TIter GI = G_set.BegI(); GI < G_set.EndI(); GI++) {
-		//clock_t t1 = clock();
+#pragma omp parallel 
+		{
+			TIntV S; //Vertex_Cut
 
-		S = Global_Cut(*GI, k, flag, G2);
-		//m++;
-		//_time += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
-		//printf("SSV_len: %d\n", (*GI)->SSV.Len());
-		//printf("%d\n", S.Empty());
-		if (S.Empty()) {
+#pragma omp for private(S) 	
+			for (int i = start; i < G_set.Len(); i++) {
+				TIntVIntV::TIter GI = &G_set[i];
+				printf("i:%d\n", i);
+				cout << "G_set[i].Len: " << G_set[i].Len() << endl;
+				
+				/*int threadId = omp_get_thread_num();
+				cout << omp_get_num_threads() << endl;*/
+				/*}
+				for (TIntVIntV::TIter GI = G_set.BegI(); GI < G_set.EndI(); GI++) {*/
+				//clock_t t1 = clock();
 
-			VCC.Add(*GI);
-		}
-		else {
-			TIntVIntV G_i = Overlap_Partition(*GI, S, G2);
-			//printf("%d\n", G_i.Len());
-			for (TIntVIntV::TIter G_ij = G_i.BegI(); G_ij < G_i.EndI(); G_ij++) {
-				//printf("SSV_len: %d\n", (*G_ij)->SSV.Len());
-				PUNGraph temp_G = TSnap::GetSubGraph(G2, *G_ij);
-				TIntVIntV VCC_i = KVCC_ENUM(temp_G, k, 1);
-				VCC.AddV(VCC_i);
-				//printf("%d\n", VCC_i.Len());
+				S = Global_Cut(*GI, k, flag, G2);
+				//m++;
+				//_time += (double)(clock() - t1) * 1.0 / (double)CLOCKS_PER_SEC;
+				//printf("SSV_len: %d\n", (*GI)->SSV.Len());
+				//printf("%d\n", S.Empty());
+				if (S.Empty()) {
+#pragma omp critical
+					VCC.Add(*GI);
+				}
+				else {
+					TIntVIntV G_i = Overlap_Partition(*GI, S, G2);
+					G_set.AddV(G_i);
+					/*printf("G_set_len: %d\n", G_set.Len());*/
+					printf("G_i[1].Len(): %d\n", G_i[1].Len());
+					printf("G_i[2].Len(): %d\n", G_i[2].Len());
+					//for (TIntVIntV::TIter G_ij = G_i.BegI(); G_ij < G_i.EndI(); G_ij++) {
+					//	//printf("SSV_len: %d\n", (*G_ij)->SSV.Len());
+					//	PUNGraph temp_G = TSnap::GetSubGraph(G2, *G_ij);
+					//	TIntVIntV VCC_i = KVCC_ENUM(temp_G, k, 1);
+					//#pragma omp critical
+					//	VCC.AddV(VCC_i);
+					//	//printf("%d\n", VCC_i.Len());
+
+					//}
+				}
 
 			}
 		}
-
+		
 	}
+	
+
+	
 
 	for (TIntVIntV::TIter GI = VCC.BegI(); GI < VCC.EndI(); GI++) {
 		GI->Sort();

@@ -5,7 +5,7 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>-a BkVCC -d Amazon -k 5 -s rand -m old -e nbr -t 16</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-a VCCE -d coAuthorsCitesee -k 15 -s mix -m old -e nbr -t 1</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>
