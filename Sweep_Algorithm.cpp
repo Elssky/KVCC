@@ -31,7 +31,7 @@ TIntVIntV VCCE_S::KVCC_ENUM(PUNGraph& sub_G, int k, int flag) {
 	//	k: an integer
 	//return:
 	//	all k-vertex connected components (Type: TIntVIntV)
-	omp_set_num_threads(threads);
+
 	//step1: initialize set VCC as empty
 	TIntVIntV VCC;  // return as K-Vccs;
 
@@ -113,7 +113,7 @@ TIntVIntV VCCE_S::KVCC_ENUM(PUNGraph& sub_G, int k, int flag) {
 TIntV VCCE_S::Global_Cut(TIntV& subG, int k, int flag, PUNGraph All_G)
 {
 
-	TIntV S, result = {};
+	TIntV S;
 	MyTCnComV CS;
 	int u, v;
 
@@ -180,92 +180,54 @@ TIntV VCCE_S::Global_Cut(TIntV& subG, int k, int flag, PUNGraph All_G)
 
 	//5.Phase1 & Sweep
 	Sweep(SC, u, pru, deposit, CS);
-	bool finish_flag = false;
-#pragma omp parallel private(S)
-	{
-	#pragma omp  for 
-		for (int i = 0; i < dist.Len(); i++) {
-			
-			if (finish_flag == true) {
-				continue;
-			}
-			int threadId = omp_get_thread_num();
-			cout << threadId << endl;
-		/*}
-		for (TIntH::TIter HI = dist.BegI(); HI < dist.EndI(); HI++) {*/
-			
-			/*v = HI.GetKey();*/
-			v = dist.GetKey(i);
-			if (pru.GetDat(v) == TRUE) {
-				pru_node++;
-				continue;
-			}
-			#pragma omp critical
-			S = Loc_Cut(u, v, SC_bar, SC, k);
-			non_pru_node++;
-			if (finish_flag == false && !S.Empty()) {
-				finish_flag = true;
-				result = S;
-			}
-		/*	if (!S.Empty()) {
 
-				return S;
-			}*/
-			#pragma omp critical
-			Sweep(SC, v, pru, deposit, CS);
+	for (TIntH::TIter HI = dist.BegI(); HI < dist.EndI(); HI++) {
 
+		v = HI.GetKey();
+
+		if (pru.GetDat(v) == TRUE) {
+			pru_node++;
+			continue;
 		}
+		S = Loc_Cut(u, v, SC_bar, SC, k);
+		non_pru_node++;
+		if (!S.Empty()) {
 
-		//6.Phase2
+			return S;
+		}
+		Sweep(SC, v, pru, deposit, CS);
+
+	}
+
+	//6.Phase2
 	//printf("%d\n", SC->SSV.IsIn(u));
-
-		int e;
-
-#pragma omp  for
-		for (int i = 0; i < SC->GetNI(u).GetDeg(); i++) {
-			if (finish_flag == true) {
+	int e;
+	for (int i = 0; i < SC->GetNI(u).GetDeg(); i++) {
+		for (int j = i + 1; j < SC->GetNI(u).GetDeg(); j++) {
+			//if (NI1 == NI2) continue;
+			int NI1 = SC->GetNI(u).GetNbrNId(i);
+			int NI2 = SC->GetNI(u).GetNbrNId(j);
+			bool flag = FALSE;
+			for (MyTCnComV::TIter I = CS.BegI(); I < CS.EndI(); I++) {
+				if (I->IsNIdIn(NI1) || I->IsNIdIn(NI2)) {
+					if (I->IsNIdIn(NI1) && I->IsNIdIn(NI2)) {
+						flag = TRUE;
+					}
+					break;
+				}
+			}
+			if (flag == TRUE) {
+				//pru_node++;
 				continue;
 			}
-			/*int threadId = omp_get_thread_num();
-			cout << threadId << endl;*/
-			for (int j = i + 1; j < SC->GetNI(u).GetDeg(); j++) {
-				
-				//if (NI1 == NI2) continue;
-				int NI1 = SC->GetNI(u).GetNbrNId(i);
-				int NI2 = SC->GetNI(u).GetNbrNId(j);
-				bool flag = FALSE;
-				for (MyTCnComV::TIter I = CS.BegI(); I < CS.EndI(); I++) {
-					if (I->IsNIdIn(NI1) || I->IsNIdIn(NI2)) {
-						if (I->IsNIdIn(NI1) && I->IsNIdIn(NI2)) {
-							flag = TRUE;
-						}
-						break;
-					}
-				}
-				if (flag == TRUE) {
-					//pru_node++;
-					continue;
-				}
-			#pragma omp critical
-				S = Loc_Cut(NI1, NI2, SC_bar, SC, k);
-				//non_pru_node++;
-				c++;
-				if (finish_flag == false && !S.Empty()) {
-					finish_flag = true;
-					result = S;
-				}
-				/*if (!S.Empty()) {
-					return S;			
-				}*/
-				
+			S = Loc_Cut(NI1, NI2, SC_bar, SC, k);
+			//non_pru_node++;
+			c++;
+			if (!S.Empty()) {
+				return S;
 			}
 		}
 	}
-	
-	
-	
-
-	
 	//if (!SC->SSV.IsIn(u)) {
 	//	int e;
 	//	PUNGraph Neigh = TSnap::GetEgonet(SC, u, e);
@@ -295,7 +257,7 @@ TIntV VCCE_S::Global_Cut(TIntV& subG, int k, int flag, PUNGraph All_G)
 	//	}
 	//}
 
-	return result;
+	return {};
 }
 
 TIntVIntV VCCE_S::Overlap_Partition(TIntV subG, TIntV Vertex_Cut, PUNGraph All_G) {
@@ -308,7 +270,7 @@ TIntVIntV VCCE_S::Overlap_Partition(TIntV subG, TIntV Vertex_Cut, PUNGraph All_G
 	TIntVIntV G_set;
 	//printf("Vertex_Cut: %d\n", Vertex_Cut.Len());
 	//printf("G: \n node_nums = %d, edge_nums = %d\n", TSnap::CntNonZNodes(G), TSnap::CntUniqUndirEdges(G));
-	TSnap::DelNodes(G_, Vertex_Cut); // ��Ӧ�ı߻��Զ�ɾ���� To test
+	TSnap::DelNodes(G_, Vertex_Cut); // 相应的边会自动删除吗 To test
 	//printf("G_: \n node_nums = %d, edge_nums = %d\n", TSnap::CntNonZNodes(G_), TSnap::CntUniqUndirEdges(G_));
 	TCnComV ConV;
 	TSnap::GetSccs(G_, ConV);
@@ -317,7 +279,7 @@ TIntVIntV VCCE_S::Overlap_Partition(TIntV subG, TIntV Vertex_Cut, PUNGraph All_G
 		for (TIntV::TIter NI = Vertex_Cut.BegI(); NI < Vertex_Cut.EndI(); NI++) {
 			I->Add(NI->Val);
 		}
-		//�̳�strong side vertex
+		//继承strong side vertex
 		/*Check_SSV(G, GI, Vertex_Cut);*/
 		G_set.Add(I->NIdV);
 	}
@@ -387,8 +349,8 @@ PUNGraph VCCE_S::Compute_SC(TIntV subG, int k, MyTCnComV& CS, PUNGraph All_G)
 void VCCE_S::Detect_SSV(PUNGraph& G)
 {
 
-	//�ж��Ƿ�Ϊ��ͼ�����ǣ�������P57 Lemma11��12�Ƶ����ļӿ���SSV�ķ�����
-	//Todo: P57 Lemma11��12�Ƶ����ļӿ���SSV�ķ���
+	//判断是否为子图，若是，可利用P57 Lemma11、12推导出的加快检测SSV的方法；
+	//Todo: P57 Lemma11、12推导出的加快检测SSV的方法
 
 	clock_t t1 = clock();
 	if (G->SSV.Len() > 0) {
@@ -501,8 +463,8 @@ bool VCCE_S::IsSSV(PUNGraph G, int NId) {
 
 void VCCE_S::Check_SSV(PUNGraph& G, PUNGraph& subG, TIntV S) {
 
-	//�ж��Ƿ�Ϊ��ͼ�����ǣ�������P57 Lemma11��12�Ƶ����ļӿ���SSV�ķ�����
-	//Todo: P57 Lemma11��12�Ƶ����ļӿ���SSV�ķ���
+	//判断是否为子图，若是，可利用P57 Lemma11、12推导出的加快检测SSV的方法；
+	//Todo: P57 Lemma11、12推导出的加快检测SSV的方法
 	//printf("%d\n", G->IsSub);
 
 	std::set<int> set1, set2, set3;

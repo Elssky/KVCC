@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
 			filename = "./" + folderPath + "/" + dataset_name + "_k=" + k_str + "_" + alg.c_str() + "_seed=" + seed.c_str()
 			+"_expand=" + expandMethod.c_str() + "_merge=" + mergeMethod.c_str() + "_t=" + std::to_string(threads).c_str()  + ".txt";
 		else 
-			filename = "./" + folderPath + "/"  +  dataset_name + "_k=" + k_str + "_" + alg.c_str() +"_t=" + std::to_string(threads).c_str() + ".txt";
+			filename = "./" + folderPath + "/"  +  dataset_name + "_k=" + k_str + "_" + alg.c_str()  + ".txt";
 		FILE* outFile = fopen(filename.c_str(), "w");
 		printf("G: \nnode_nums = %d, edge_nums = %d\n", G->GetNodes(), G->GetEdges());
 		
