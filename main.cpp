@@ -5,6 +5,7 @@
 #include "getopt.h"
 #include "Test.h"
 #include <iostream>
+#include <psapi.h>
 
 
 
@@ -93,7 +94,7 @@ int main(int argc, char* argv[]) {
 			break;
 		case 'm':
 			mergeMethod = optarg;
-			printf("opt is f, oprarg is: %s\n", optarg);
+			printf("opt is m, oprarg is: %s\n", optarg);
 			break;
 		case 'e':
 			expandMethod = optarg;
@@ -110,6 +111,10 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
+	PROCESS_MEMORY_COUNTERS pmc;
+	GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc));
+	SIZE_T peakWorkingSetSize = pmc.PeakWorkingSetSize;
+	
 
 
 	//dataset = "DBLP";//BkFig  smalltestforkvcc opsahl-openflights
@@ -362,7 +367,9 @@ int main(int argc, char* argv[]) {
 		//fclose(outFile);
 		//
 	/*}*/
+		cout << "Peak memory usage: " << peakWorkingSetSize / (1024*1024) << " MB" << endl;
 }
+
 
 
 

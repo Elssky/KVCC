@@ -8,6 +8,7 @@
 #include <string>
 #include "Utility.h"
 
+
 using namespace std;
 
 
@@ -29,9 +30,13 @@ public:
 	TStr dataset;
 protected:
 	TIntV LkVCS(PUNGraph G, int k, int u, int alpha);
-	bool flag1(PUNGraph G_R);
-	bool flag2(PUNGraph P_prime, PUNGraph G_R);
+	/*bool flag1(PUNGraph G_R);
+	bool flag2(PUNGraph P_prime, PUNGraph G_R);*/
+	bool flag1(PUNGraph G_R, int& u, int& v);
+	bool flag2(PUNGraph P_prime, PUNGraph G_R, int& u, TIntV& vs);
+	//bool flag2(PUNGraph P_prime, PUNGraph G_R, int& u, int& v);
 	void Adding2Subset(PUNGraph P_prime, PUNGraph G_R, TIntV& R);
+	void Adding2Subset2(PUNGraph P_prime, PUNGraph G_R, TIntV& R, int u, int v);
 	TIntVIntV Seeding(PUNGraph G, int k, int alpha);
 	void Expanding(int k, TIntVIntV& G_S);
 	int GetCand(TIntV &G_S, TIntV& delta_S, TIntV& delta_S_bar);

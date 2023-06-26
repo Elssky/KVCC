@@ -10,7 +10,7 @@
 using namespace std;
 //Preprocessing function
 
-int k, threads;
+int k, threads = 1;
 string alg, seed, mergeMethod, expandMethod;
 TStr dataset;
 
@@ -206,9 +206,12 @@ int Count(int n, int m)
 	vector<int> dp(m + 1);
 	for (int i = 0; i <= n; i++)
 		for (int j = min(i, m); j >= 0; j--)
+		{
 			if (i == j || j == 0) dp[j] = 1;
 			else dp[j] = dp[j] + dp[j - 1];
-
+			if (dp[j] > 1000) return dp[j];
+		}
+			
 	return dp[m];
 }
 
@@ -217,31 +220,50 @@ TVec<TIntV> randSample(TIntV nums, int k, int alpha)
 	TVec<TIntV> res;
 	TIntV track;
 	res.Clr();
-	//cout << res.Len()<<" "<<alpha << endl;
 	int n = nums.Len();
 	int m = k;
+
 	//int flag = 0;//标记组合数是否足够大，0则调用子集，1则调用随机生成
 
 	
-	
-	
+	TIntV temp_v;
+	temp_v.Clr();
+	/*cout << "num: " << Count(n, m) << endl;*/
 
-	if (Count(n, m) < 5*alpha) return subsets(nums, k, alpha, track, res);
+	if (Count(n, m) < alpha) {
+		if (m > n / 2) {
+			TVec<TIntV>temp =  subsets(nums, n - k, alpha, track, res);
+			for (int i = 0; i < temp.Len(); i++) {
+				temp_v = temp[i];
+				temp[i] = nums;
+				temp[i].Diff(temp_v);
+			}
+			
+			return temp;
+			
+		}
+		else {
+			
+			return subsets(nums, k, alpha, track, res);
+		}
+		
+	}
+
 	
 	
 	//随机生成子集
 	while (res.Len() < alpha) {
 		track.Clr();
-
+		
 		/*while (track.Len() < k) {
 			int t = rand() % (n + 1);
 			track.AddUnique(nums[t]);
 		}*/
 		track = getRandom(nums);
 		//cout << track.Len() << endl;
-		res.AddUnique(TIntV(track));
+		res.Add(TIntV(track));
 		
-		//cout << res.Len() << endl;
+
 	}
 	res.Merge();
 	return res;
@@ -270,16 +292,68 @@ TVec<TIntV> subsets(TIntV nums, int k, int alpha, TIntV& track, TVec<TIntV>& res
 	return res;
 }
 
-void backtrack(TIntV nums, int start, int k, int alpha, TIntV& track, TVec<TIntV>& res) {
-	
-	if (res.Len() >= alpha) {
+//TVec<TIntV> subsets(TIntV nums, int k, int alpha, TIntV& track, TVec<TIntV>& res) {
+//	res.Clr();
+//	track.Clr();
+//
+//	generateCombinations(nums, k, res, alpha);
+//
+//	return res;
+//}
+
+void printCombination(TIntV& nums, int bitmask, TVec<TIntV>& res) {
+	TIntV combination;
+	for (int i = 0; i < nums.Len(); i++) {
+		if ((bitmask >> i) & 1) {
+			combination.Add(nums[i]);
+		}
+	}
+	res.Add(combination);
+	//for (int i = 0; i < track.Len(); i++) {
+	//	cout << track[i] << " ";
+	//}
+	//cout << endl;
+}
+
+void generateCombinations(TIntV& nums, int k, TVec<TIntV>& res, int alpha) {
+	int n = nums.Len();
+	if (k == 0) {
 		return;
 	}
+
+	int bitmask = (1 << k) - 1;
+	//cout << "k: " << k << endl;
+	//cout << "bitmask: " << bitmask << endl;
+	while (bitmask < (1 << n)) {
+		if(res.Len() > alpha) 
+		{
+			cout << "res: " << res.Len() << endl;
+			cout << "n: " << nums.Len() << endl;
+			cout << "k: " << k << endl;
+			cout << "num: " << Count(n, k) << endl;
+		}
+		//if (res.Len() > alpha) break;
+		printCombination(nums, bitmask, res);
+		//cout << "bitmask: " << bitmask << endl;
+		int lowestBit = bitmask & -bitmask;
+		int resetBits = bitmask + lowestBit;
+		/*cout << "lowestBit: "<< lowestBit <<endl;*/
+		bitmask = (((bitmask & ~resetBits) / lowestBit) >> 1) | resetBits;
+	}
+}
+
+
+
+
+void backtrack(TIntV nums, int start, int k, int alpha, TIntV& track, TVec<TIntV>& res) {
+	
 
 	if (track.Len() == k) {
 		res.Add(TIntV (track));
 		return;
 	}
+	/*cout << "res.Len(): "<<res.Len() << endl;
+	cout << track.Len() << endl;*/
 	
 	
 	for (int i = start; i < nums.Len(); i++) {
