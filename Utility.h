@@ -24,6 +24,8 @@ typedef TVec <TPair<TIntV, TIntV>> TPrVIntV;
 
 void usage();
 TVec<TIntV> subsets(TIntV nums, int k, int alpha, TIntV& track, TVec<TIntV>& res);
+void printCombination(TIntV& nums, int bitmask, TVec<TIntV>& res);
+void generateCombinations(TIntV& nums, int k, TVec<TIntV>& res, int alpha);
 int get_vertex_id(int u, int& num, int* vertex_map_);
 void format_graph(string src);
 TVec<TIntV> randSample(TIntV nums, int k, int alpha);

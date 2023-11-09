@@ -125,41 +125,41 @@ TIntV VCCE_S::Global_Cut(TIntV& subG, int k, int flag, PUNGraph All_G)
 	//2. direct graph
 	PNEANet SC_bar = Construct_DG(SC);
 
-	////3. detect strong side vertices
-	//if (Compute_SSV_times == 1) {
-	//	if (flag == 0) {
-	//		//Get_SSV(SC);
-	//		Detect_SSV(SC);
-	//	}
-	//		
-	//}
-	//else if (Compute_SSV_times > 1) {
-	//	//Get_SSV(SC);
-	//	Detect_SSV(SC);
-	//}
-	//else {
+	//3. detect strong side vertices
+	if (Compute_SSV_times == 1) {
+		if (flag == 0) {
+			//Get_SSV(SC);
+			Detect_SSV(SC);
+		}
+			
+	}
+	else if (Compute_SSV_times > 1) {
+		//Get_SSV(SC);
+		Detect_SSV(SC);
+	}
+	else {
 
-	//}
+	}
 
-	////printf("SC_");
-	////Detect_SSV(SC);
-	//G->SSV = SC->SSV;
-	////printf("SSV_len: %d\n", SC->SSV.Len());
-	////printf("G->SSV: %d\n", G->SSV.Len());
-	//
-	////printf("%fs\n", (clock() - t1) * 1.0 / CLOCKS_PER_SEC);
-	//
-	//
+	//printf("SC_");
+	//Detect_SSV(SC);
+	G->SSV = SC->SSV;
+	//printf("SSV_len: %d\n", SC->SSV.Len());
+	//printf("G->SSV: %d\n", G->SSV.Len());
+	
+	//printf("%fs\n", (clock() - t1) * 1.0 / CLOCKS_PER_SEC);
+	
+	
 
-	//if (SC->SSV.Empty()) {
-	//	u = GetMnDegNId(SC);		
-	//}
-	//else {
-	//	//printf("1\n");
-	//	u = SC->SSV.GetRndVal();
-	//}
+	if (SC->SSV.Empty()) {
+		u = GetMnDegNId(SC);		
+	}
+	else {
+		//printf("1\n");
+		u = SC->SSV.GetRndVal();
+	}
 
-	u = GetMnDegNId(SC);
+	/*u = GetMnDegNId(SC);*/
 
 	//4.Init
 

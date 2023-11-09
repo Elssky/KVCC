@@ -55,7 +55,6 @@ TIntVIntV BkVCC::BkVCC_ENUM(PUNGraph& G, int k, int alpha)
 		cout << endl << "***kvcc result does not exist, running BkVCC function...***" << endl;
 	}*/
 
-	
 	G_S = Seeding(G, k, alpha);
 	
 
@@ -66,17 +65,18 @@ TIntVIntV BkVCC::BkVCC_ENUM(PUNGraph& G, int k, int alpha)
 
 		G_S_prime = G_S;
 		
-
-		//expanding G_S
-		if (strcmp(expandMethod.c_str(), "") != 0)
-			Expanding(k, G_S);
-
 		if (strcmp(mergeMethod.c_str(), "") != 0) {
 			//打乱顺序
 			//G_S.Reverse();
 			Merging(k, G_S, G_R);
 			/*cout << "after Merging subgraph num:" << G_S.Len() << endl;*/
 		}
+
+		//expanding G_S
+		if (strcmp(expandMethod.c_str(), "") != 0)
+			Expanding(k, G_S);
+
+		
 
 	
 	} while (G_S != G_S_prime); // TODO: 如何判断是否发生变化，仅靠长度肯定是不行的 FINISH:用顶点数组表示一张图，对比数组即可
@@ -202,6 +202,8 @@ TIntV BkVCC::LkVCS(PUNGraph G, int k, int u, int alpha)
 	
 	return {};
 }
+
+
 
 bool BkVCC::flag1(PUNGraph G_R, int &u, int &v)
 {
@@ -672,25 +674,25 @@ TIntVIntV BkVCC::Seeding(PUNGraph G, int k, int alpha)
 
 		TCliqueOverlap::GetMaxCliques(G, k + 1, G_S);
 
-		//for (TIntVIntV::TIter GI = G_S.BegI(); GI < G_S.EndI(); GI++) {
-		//	for (TIntV::TIter NI = GI->BegI(); NI < GI->EndI(); NI++) {
-		//		CandMaintain.GetDat(*NI) = 1;
-		//		if (G_temp.IsNode(*NI)) G_temp.DelNode(*NI);
+		for (TIntVIntV::TIter GI = G_S.BegI(); GI < G_S.EndI(); GI++) {
+			for (TIntV::TIter NI = GI->BegI(); NI < GI->EndI(); NI++) {
+				CandMaintain.GetDat(*NI) = 1;
+				if (G_temp.IsNode(*NI)) G_temp.DelNode(*NI);
 
-		//		//cout << i++ << ": " << CandMaintain.GetDat(*NI) << endl;
+				//cout << i++ << ": " << CandMaintain.GetDat(*NI) << endl;
 
-		//	}
-		//}
-		//cout << "G_temp(after-kvcc): " << G_temp.GetNodes() << endl;
-		//if (G_temp.GetNodes() != 0) {
-		int k_prime = k + 3;
-		VCCE_S VCCE_S(G, k_prime, 1);
-		PUNGraph tmp = TSnap::GetKCore(G, k_prime);
-		printf("G(%d-core): \nnode_nums = %d, edge_nums = %d\n", k_prime, tmp->GetNodes(), tmp->GetEdges());
-		VCCE_S.dataset = dataset;
-		TIntVIntV k_prime_vcc = VCCE_S.KVCC_ENUM(VCCE_S.G, VCCE_S.k);
-		G_S.AddV(k_prime_vcc);
-		/*}*/
+			}
+		}
+		cout << "G_temp(after-mc): " << G_temp.GetNodes() << endl;
+		if (G_temp.GetNodes() != 0) {
+			int k_prime = k + 11;
+			VCCE_S VCCE_S(G, k_prime, 1);
+			PUNGraph tmp = TSnap::GetKCore(G, k_prime);
+			printf("G(%d-core): \nnode_nums = %d, edge_nums = %d\n", k_prime, tmp->GetNodes(), tmp->GetEdges());
+			VCCE_S.dataset = dataset;
+			TIntVIntV k_prime_vcc = VCCE_S.KVCC_ENUM(VCCE_S.G, VCCE_S.k);
+			G_S.AddV(k_prime_vcc);
+		}
 		
 		G_S.Merge();
 
@@ -746,8 +748,127 @@ TIntVIntV BkVCC::Seeding(PUNGraph G, int k, int alpha)
 		G_S.Merge();
 
 	}
+	else if (strcmp(seed.c_str(), "k'-vcc+clique+SG") == 0) { //side-groups
 
-	//cout << G_S.Len();
+		TUNGraph G_temp = *G;
+
+		for (TUNGraph::TNodeI NI = G->BegNI(); NI < G->EndNI(); NI++) {
+			//cout << NI.GetId() << endl;
+			CandMaintain.AddDat(NI.GetId(), 0);
+			deg.AddDat(NI.GetId(), NI.GetDeg());
+		}
+
+		///*printf("G_tmp: \nnode_nums = %d, edge_nums = %d\n", k, G_tmp->GetNodes(), G_tmp->GetEdges());*/
+		printf("G(before SC): \nnode_nums = %d, edge_nums = %d\n",  G->GetNodes(), G->GetEdges());
+		Compute_SC(k, G_S, G);
+		//printf("G_tmp: \nnode_nums = %d, edge_nums = %d\n", k, G_tmp->GetNodes(), G_tmp->GetEdges());
+		printf("G(after SC): \nnode_nums = %d, edge_nums = %d\n",  G->GetNodes(), G->GetEdges());
+		/*G = &G_P;*/
+		//for (TIntVIntV::TIter GI = G_S.BegI(); GI < G_S.EndI(); GI++) {
+		//	for (TIntV::TIter NI = GI->BegI(); NI < GI->EndI(); NI++) {
+		//		CandMaintain.GetDat(*NI) = 1;
+		//		if (G_temp.IsNode(*NI)) G_temp.DelNode(*NI);
+
+		//		//cout << i++ << ": " << CandMaintain.GetDat(*NI) << endl;
+
+		//	}
+		//}
+		//cout << "G_temp(after-sc): " << G_temp.GetNodes() << endl;
+
+		
+		TIntVIntV mc;
+		TCliqueOverlap::GetMaxCliques(G, k + 1, mc);
+		G_S.AddV(mc);
+		G_S.Merge();
+
+		for (TIntVIntV::TIter GI = G_S.BegI(); GI < G_S.EndI(); GI++) {
+			for (TIntV::TIter NI = GI->BegI(); NI < GI->EndI(); NI++) {
+				CandMaintain.GetDat(*NI) = 1;
+				if (G_temp.IsNode(*NI)) G_temp.DelNode(*NI);
+
+				//cout << i++ << ": " << CandMaintain.GetDat(*NI) << endl;
+
+			}
+		}
+		cout << "G_temp(after-mc): " << G_temp.GetNodes() << endl;
+		/*if (G_temp.GetNodes() != 0) {
+			int k_prime = k + 11;
+			VCCE_S VCCE_S(G, k_prime, 1);
+			PUNGraph tmp = TSnap::GetKCore(G, k_prime);
+			printf("G(%d-core): \nnode_nums = %d, edge_nums = %d\n", k_prime, tmp->GetNodes(), tmp->GetEdges());
+			VCCE_S.dataset = dataset;
+			TIntVIntV k_prime_vcc = VCCE_S.KVCC_ENUM(VCCE_S.G, VCCE_S.k);
+			G_S.AddV(k_prime_vcc);
+		}*/
+
+		G_S.Merge();
+
+		//step2.将处于max_cliques的点从CandMaintain设为1，表示已被选入子图
+		//TODO：直接将max_cliques中的点删除
+		//TUNGraph G_temp = *G;
+		//for (TIntVIntV::TIter GI = G_S.BegI(); GI < G_S.EndI(); GI++) {
+		//	for (TIntV::TIter NI = GI->BegI(); NI < GI->EndI(); NI++) {
+		//		CandMaintain.GetDat(*NI) = 1;
+		//		if (G_temp.IsNode(*NI)) G_temp.DelNode(*NI);
+
+		//		//cout << i++ << ": " << CandMaintain.GetDat(*NI) << endl;
+
+		//	}
+		//}
+		//cout << "G_temp: " << G_temp.GetNodes() << endl;
+		//cout << G_S.Len() << endl;
+
+		//int i = 0;
+
+		deg.SortByDat(); //non-decreasing order
+
+		#pragma omp parallel
+		{
+			//int threadId = omp_get_thread_num();
+			/*cout << omp_get_num_threads() << endl;*/
+		#pragma omp for private(G_C)
+			for (int i = 0; i < deg.Len(); i++) {
+				/*cout << i << ": " << deg[i] << endl;*/
+				int v = CandMaintain.GetKey(i);
+				if (CandMaintain.GetDat(v) == 0) {
+					/*if (true) {*/
+						/*cout << v << " " << deg.GetDat(v) << endl;*/
+					G_C = LkVCS(G, k, v, alpha);
+					/*cout << "G_C: " << G_C.Len() << endl;*/
+					/*cout<< ++i <<endl;*/
+					if (G_C.Empty()) continue;
+
+		#pragma omp critical
+					G_S.Add(G_C); //怎么判断是否相等（Unique）？
+		#pragma omp critical
+					for (TIntV::TIter TI = G_C.BegI(); TI < G_C.EndI(); TI++) {
+
+						CandMaintain.GetDat(*TI) = 1;
+					}
+
+				}
+
+
+			}
+
+		}
+		G_S.Merge();
+		
+	}
+	else if (strcmp(seed.c_str(), "SG+mc") == 0) { //side-groups
+		TIntVIntV sg;
+		TCliqueOverlap::GetMaxCliques(G, k + 1, G_S);
+		/*PUNGraph G_tmp = TSnap::LoadEdgeList<PUNGraph>("./dataset/" + dataset + ".txt", 0, 1);*/
+		
+		printf("G(before SC): \nnode_nums = %d, edge_nums = %d\n", G->GetNodes(), G->GetEdges());
+		Compute_SC(k, G_S, G);
+		//printf("G_tmp: \nnode_nums = %d, edge_nums = %d\n", k, G_tmp->GetNodes(), G_tmp->GetEdges());
+		printf("G(after SC): \nnode_nums = %d, edge_nums = %d\n", G->GetNodes(), G->GetEdges());
+		G_S.AddV(sg);
+		G_S.Merge();
+	}
+
+
 	TFOut outFile("./seedgraph/" + dataset + "_k=" + TStr(k_str) + "_alpha=" + TStr(alpha_str) + "_seed=" + TStr(seed.c_str()) + ".seed");
 	G_S.Save(outFile);
 
@@ -1346,33 +1467,7 @@ bool BkVCC::flag3(TIntV G_S, int& u, TIntV& delta_S, TIntV& delta_S_bar)
 			if (!nb_u.IsIn(CtrNode.GetInNId(i)))
 				nb_u.Add(CtrNode.GetInNId(i));
 		}
-		/*cout << nb_u.Len() << endl;*/
-		//cout << "nb_u: ";
-		//for (TIntV::TIter TI = nb_u.BegI(); TI < nb_u.EndI(); TI++) {
-		//	cout <<*TI<<" ";
-		//}
-		//cout << endl;
-		//cout << "nb_nums: " << TSnap::GetCommon(nb_u, delta_S) << endl;
-		/*if (G_S.IsIn(0)) {
-			cout << "u = " << *TI << ":" << endl;
-
-			cout << "G_S:";
-			for (TIntV::TIter TI = G_S.BegI(); TI < G_S.EndI(); TI++) {
-				cout << *TI << " ";
-			}
-			cout << endl;
-			cout << "delta_S: ";
-			for (TIntV::TIter TI = delta_S.BegI(); TI < delta_S.EndI(); TI++) {
-				cout << *TI << " ";
-			}
-			cout << endl;
-			cout << "delta_S_bar: ";
-			for (TIntV::TIter TI = delta_S_bar.BegI(); TI < delta_S_bar.EndI(); TI++) {
-				cout << *TI << " ";
-			}
-			cout << endl;
-			cout << delta_S.Len() << endl;
-		}*/
+		
 		if (TSnap::GetCommon(nb_u, delta_S) >= k) {
 			u = *TI;
 			return true;
@@ -1550,20 +1645,7 @@ void BkVCC::Merging(int k, TIntVIntV& G_S, TIntVIntV& G_R)
 						TIntV G_Union = {};
 						G_Union.AddVMerged(GI1);
 						G_Union.AddVMerged(GI2);
-						/*if (G_Union.Len() > 200) {
-							cout << "here" << endl;
-						}*/
-
-						/*if (G_Union.Len() > 4540) {
-							for (TIntV::TIter NI = GI1.BegI(); NI < GI1.EndI(); NI++) {
-								cout << NI << " ";
-							}
-							cout << endl;
-							for (TIntV::TIter NI = GI2.BegI(); NI < GI2.EndI(); NI++) {
-								cout << NI << " ";
-							}
-							cout << endl;
-						}*/
+						
 						//if (IskVCC(G_Union, k)) 
 						if (false) {
 							G_R.Add(G_Union);
@@ -1590,9 +1672,7 @@ void BkVCC::Merging(int k, TIntVIntV& G_S, TIntVIntV& G_R)
 						TIntV G_Union = {};
 						G_Union.AddVMerged(GI1);
 						G_Union.AddVMerged(GI2);
-						/*if (G_Union.Len() > 200) {
-							cout << "here" << endl;
-						}*/
+						
 						if (IskVCC(G_Union, k)) {
 							G_R.Add(G_Union);
 							G_S.DelIfIn(GI1);
@@ -1859,3 +1939,72 @@ PNEANet BkVCC::Construct_DG(PUNGraph G)
 //	return TSnap::GetSubGraph(G, Nodes1);
 //}
 
+
+
+void BkVCC::Compute_SC(int k, TIntVIntV& CS, PUNGraph G)
+{
+
+	PNGraph BFSTree;
+	PUNGraph F_k = TUNGraph::New();//Forest k
+	/*TUNGraph G_P = *G;
+	PUNGraph G_ = &G_P;*/
+	PUNGraph G_ = G;
+	TCnComV CS_CC;
+	//int NodeNums = TSnap::CntNonZNodes(G_);
+	int NodeNums = G_->GetNodes();
+	TIntVIntV Del_Edge;
+	TIntV edge;
+	std::vector<int> visited; //mark visited node
+	std::vector<int> del;  //fix wrong BFS Tree
+	for (int i = 0; i < k; i++) {
+		visited.clear();
+		//printf("F%d:\n", i);
+		int j = 0;
+
+		while (visited.size() < NodeNums) {
+			for (TUNGraph::TNodeI NI = G_->BegNI(); NI < G_->EndNI(); NI++) {
+
+				if (std::find(visited.begin(), visited.end(), NI.GetId()) == visited.end()) {
+
+					BFSTree = TSnap::MyGetBfsTree(G_, NI.GetId(), TRUE, FALSE);  //My BFS Function modified in bfsdfs.h
+					del.clear();
+
+
+					for (TNGraph::TNodeI TNI = BFSTree->BegNI(); TNI < BFSTree->EndNI(); TNI++) {
+						visited.push_back(TNI.GetId());
+						
+						if (i == k - 1) {
+							F_k->AddNode(TNI.GetId());
+						}
+					}
+					for (TNGraph::TEdgeI TEI = BFSTree->BegEI(); TEI < BFSTree->EndEI(); TEI++) {					
+						G_->DelEdge(TEI.GetSrcNId(), TEI.GetDstNId());
+						edge.Clr();
+						edge.Add(TEI.GetSrcNId());
+						edge.Add(TEI.GetDstNId());
+						Del_Edge.Add(edge);
+						if (i == k - 1) {
+							F_k->AddEdge(TEI.GetSrcNId(), TEI.GetDstNId());
+						}
+					}
+				}
+			}
+		}
+	}
+	TSnap::GetSccs(F_k, CS_CC);
+	for (TCnComV::TIter I = CS_CC.BegI(); I < CS_CC.EndI(); I++) {
+		if (I->Len() < k + 1) {
+			CS_CC.DelAll(*I);
+		}
+	}
+	for (TCnComV::TIter I = CS_CC.BegI(); I < CS_CC.EndI(); I++) {
+		CS.Add(I->NIdV);
+	}
+	for (int i = 0; i < Del_Edge.Len(); i++) {
+		G_->AddEdge(Del_Edge[i][0], Del_Edge[i][1]);
+	}
+	
+
+	return;
+
+}

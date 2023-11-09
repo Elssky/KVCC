@@ -30,6 +30,7 @@ public:
 	TStr dataset;
 protected:
 	TIntV LkVCS(PUNGraph G, int k, int u, int alpha);
+	void Compute_SC(int k, TIntVIntV& CS, PUNGraph G);
 	/*bool flag1(PUNGraph G_R);
 	bool flag2(PUNGraph P_prime, PUNGraph G_R);*/
 	bool flag1(PUNGraph G_R, int& u, int& v);
